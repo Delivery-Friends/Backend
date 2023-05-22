@@ -1,12 +1,13 @@
 package DeliveryFriends.Backend.Domain;
 
 import lombok.Data;
+import lombok.Getter;
 
 import javax.persistence.*;
 import java.time.LocalDateTime;
 
 @Entity
-@Data
+@Getter
 public class Team extends BaseEntity {
 
     @Id

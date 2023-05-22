@@ -1,0 +1,8 @@
+# CHORE : 코드 수정, 내부 파일 수정
+# FEAT : 새로운 기능 구현
+# HOTFIX : Issue나, QA에서 급한 버그 수정에 사용
+# FIX : 버그, 오류 해결
+# DOCS : README나 WIKI 등의 문서 개정
+# REFACTOR : 전면 수정이 있을 때 사용
+
+# 예) feat : 로그인 기능 추가

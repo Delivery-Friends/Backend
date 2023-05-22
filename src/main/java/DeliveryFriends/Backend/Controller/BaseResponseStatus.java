@@ -14,7 +14,8 @@ public enum BaseResponseStatus {
     EXISTS_EMAIL(10000, "존재하는 이메일입니다."),
     FILE_CONVERT_ERROR(10001, "파일 변환에 실패하였습니다."),
     EMPTY_JWT(10002, "JWT가 비어있습니다."),
-    INVALID_JWT(10002, "JWT에 오류가 있습니다.");
+    INVALID_JWT(10002, "JWT에 오류가 있습니다."),
+    KAKAO_SERVER_ERROR(10003, "카카오 서버에 문제가 있습니다.");
 
 
     private final int statusCode;

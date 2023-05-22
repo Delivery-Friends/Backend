@@ -1,11 +1,12 @@
 package DeliveryFriends.Backend.Domain;
 
 import lombok.Data;
+import lombok.Getter;
 
 import javax.persistence.*;
 
 @Entity
-@Data
+@Getter
 public class MenuMedia extends BaseEntity {
 
     @Id

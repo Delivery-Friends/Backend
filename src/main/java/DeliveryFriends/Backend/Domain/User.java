@@ -2,12 +2,15 @@ package DeliveryFriends.Backend.Domain;
 
 import lombok.Builder;
 import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 
 import javax.persistence.*;
 import java.time.LocalDate;
 
 @Entity
-@Data
+@Getter
+@Setter
 public class User extends BaseEntity {
 
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)

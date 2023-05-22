@@ -1,6 +1,7 @@
 package DeliveryFriends.Backend.Domain;
 
 import lombok.Data;
+import lombok.Getter;
 
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
@@ -9,14 +10,14 @@ import javax.persistence.Id;
 import java.time.LocalTime;
 
 @Entity
-@Data
+@Getter
 public class Store extends BaseEntity {
     @Id@GeneratedValue(strategy = GenerationType.IDENTITY)
     Long id;
 
     String name;
-    String region1depth;
-    String region2depth;
+    String region1depthName;
+    String region2depthName;
     String region3depth;
     String phoneNumber;
     String intro;
@@ -24,6 +25,7 @@ public class Store extends BaseEntity {
     LocalTime closeTime;
     String registrationNumber;
     Long deliveryWaitTime;
+    Long deliveryTip;
     Boolean packageAvailable;
     Long packageWaitTime;
 }
