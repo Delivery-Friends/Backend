@@ -22,5 +22,6 @@ public class BaseEntity {
     @LastModifiedDate
     LocalDateTime updatedAt;
 
-    Boolean deleted;
+    @Column(columnDefinition = "TINYINT", length = 1)
+    Boolean deleted = false;
 }

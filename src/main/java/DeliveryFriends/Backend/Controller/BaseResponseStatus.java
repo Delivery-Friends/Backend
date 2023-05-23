@@ -15,7 +15,11 @@ public enum BaseResponseStatus {
     FILE_CONVERT_ERROR(10001, "파일 변환에 실패하였습니다."),
     EMPTY_JWT(10002, "JWT가 비어있습니다."),
     INVALID_JWT(10002, "JWT에 오류가 있습니다."),
-    KAKAO_SERVER_ERROR(10003, "카카오 서버에 문제가 있습니다.");
+    KAKAO_SERVER_ERROR(10003, "카카오 서버에 문제가 있습니다."),
+    CANNOT_FOUND_STORE(10004, "가게를 찾을 수 없습니다."),
+    CANNOT_FOUND_MENU(10005, "메뉴를 찾을 수 없습니다."),
+    CANNOT_FOUND_MENU_OPTION_GROUP(10006, "옵션 그룹을 찾을 수 없습니다."),
+    CANNOT_FOUND_MENU_OPTION(10007, "옵션을  찾을 수 없습니다.");
 
 
     private final int statusCode;

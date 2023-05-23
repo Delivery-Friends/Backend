@@ -1,12 +1,15 @@
 package DeliveryFriends.Backend.Domain;
 
+import DeliveryFriends.Backend.Domain.Dto.Store.CreateMenuDto;
 import lombok.Data;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 import javax.persistence.*;
 
 @Entity
 @Getter
+@NoArgsConstructor
 public class Menu extends BaseEntity {
 
     @Id
@@ -14,10 +17,17 @@ public class Menu extends BaseEntity {
     Long id;
 
     String name;
-    String price;
+    Long price;
     String expression;
 
     @ManyToOne
     @JoinColumn(name = "store_id")
     Store store;
+
+    public Menu(CreateMenuDto createMenuDto, Store store) {
+        this.name = createMenuDto.getName();
+        this.price = createMenuDto.getPrice();
+        this.expression = createMenuDto.getExpression();
+        this.store = store;
+    }
 }

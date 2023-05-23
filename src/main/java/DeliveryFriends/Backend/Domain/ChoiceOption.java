@@ -2,11 +2,13 @@ package DeliveryFriends.Backend.Domain;
 
 import lombok.Data;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 import javax.persistence.*;
 
 @Entity
 @Getter
+@NoArgsConstructor
 public class ChoiceOption extends BaseEntity {
 
     @Id

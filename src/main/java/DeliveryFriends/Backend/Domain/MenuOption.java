@@ -1,12 +1,15 @@
 package DeliveryFriends.Backend.Domain;
 
+import DeliveryFriends.Backend.Domain.Dto.Store.CreateMenuOptionDto;
 import lombok.Data;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 import javax.persistence.*;
 
 @Entity
 @Getter
+@NoArgsConstructor
 public class MenuOption extends BaseEntity {
 
     @Id
@@ -22,4 +25,11 @@ public class MenuOption extends BaseEntity {
     @ManyToOne
     MenuOptionGroup menuOptionGroup;
 
+    public MenuOption(CreateMenuOptionDto createMenuOptionDto, MenuOptionGroup menuOptionGroup) {
+        this.name = createMenuOptionDto.getName();
+        this.price = createMenuOptionDto.getPrice();
+        this.maxCount = createMenuOptionDto.getMaxCount();
+        this.defaultValue = createMenuOptionDto.getDefaultValue();
+        this.menuOptionGroup = menuOptionGroup;
+    }
 }

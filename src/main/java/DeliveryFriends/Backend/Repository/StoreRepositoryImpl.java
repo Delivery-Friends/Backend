@@ -24,6 +24,7 @@ import static DeliveryFriends.Backend.Domain.QStore.store;
 public class StoreRepositoryImpl implements StoreRepositoryCustom {
     private final JPAQueryFactory queryFactory;
 
+    @Override
     public List<SimpleStoreDto> getStoreList(Pageable pageable, StoreCondDto cond) {
         JPAQuery<SimpleStoreDto> query = queryFactory.select(new QSimpleStoreDto(
                 store.id,
@@ -33,7 +34,7 @@ public class StoreRepositoryImpl implements StoreRepositoryCustom {
                 store.packageWaitTime,
                 store.deliveryTip
         ))
-                .from(store)
+                .from(menu)
                 .where(
                         store.deleted.eq(false),
                         searchFilter(cond.getSearch()),
