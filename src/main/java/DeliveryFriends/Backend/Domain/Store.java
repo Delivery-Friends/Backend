@@ -2,7 +2,6 @@ package DeliveryFriends.Backend.Domain;
 
 import DeliveryFriends.Backend.Domain.Dto.Store.CreateStoreDto;
 import lombok.Builder;
-import lombok.Data;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -59,7 +58,7 @@ public class Store extends BaseEntity {
         this.name = createStoreDto.getName();
         this.region1depthName = createStoreDto.getRegion1depthName();
         this.region2depthName = createStoreDto.getRegion2depthName();
-        this.region3depth = createStoreDto.getRegion3depth();
+        this.region3depth = createStoreDto.getRegion3depthName();
         this.phoneNumber = createStoreDto.getPhoneNumber();
         this.intro = createStoreDto.getIntro();
         this.openTime = createStoreDto.getOpenTime();

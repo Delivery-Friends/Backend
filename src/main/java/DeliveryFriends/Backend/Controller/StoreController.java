@@ -6,10 +6,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalTime;
 import java.util.List;
@@ -20,13 +17,23 @@ public class StoreController {
     private final StoreService storeService;
 
     @PostMapping("/addStore")
-    public Long addStore(@RequestBody CreateStoreDto createStoreDto) {
-        return storeService.addStore(createStoreDto);
+    public BaseResponse<Long> addStore(@RequestBody CreateStoreDto createStoreDto) {
+        return new BaseResponse<>(storeService.addStore(createStoreDto));
     }
 
     @PostMapping("/addMenu")
-    public Long addMenu(@RequestBody CreateMenuDto createMenuDto) {
-        return storeService.addMenu(createMenuDto);
+    public BaseResponse<Long> addMenu(@RequestBody CreateMenuDto createMenuDto) {
+        return new BaseResponse<>(storeService.addMenu(createMenuDto));
+    }
+
+    @PostMapping("/addMenuOptionGroup")
+    public BaseResponse<Long> addMenuOptionGroup(@RequestBody CreateMenuOptionGroupDto req) {
+        return new BaseResponse<>(storeService.addMenuOptionGroup(req));
+    }
+
+    @PostMapping("/addMenuOption")
+    public BaseResponse<Long> addMenuOption(@RequestBody CreateMenuOptionDto req) {
+        return new BaseResponse<>(storeService.addMenuOption(req));
     }
 
     @GetMapping("/stores")
@@ -34,6 +41,11 @@ public class StoreController {
             @PageableDefault(size = 10, sort = "reviewCount", direction = Sort.Direction.ASC) Pageable pageable,
             StoreCondDto cond
             ) {
-        return new BaseResponse<List<ReadStoresDto>>(storeService.getStoreList(pageable, cond));
+        return new BaseResponse<>(storeService.getStoreList(pageable, cond));
+    }
+
+    @GetMapping("/store/menu/{storeId}")
+    public BaseResponse<List<ReadMenuDto>> getStoreMenu(@PathVariable Long storeId) {
+        return new BaseResponse<>(storeService.readMenu(storeId));
     }
 }

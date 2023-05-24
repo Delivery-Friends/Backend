@@ -12,9 +12,9 @@ public class CreateUserReq {
     String email;
     String password;
 
-    String region1depth;
-    String region2depth;
-    String region3depth;
+//    String region1depth;
+//    String region2depth;
+//    String region3depth;
     String kakaoId;
     String gender;
 }

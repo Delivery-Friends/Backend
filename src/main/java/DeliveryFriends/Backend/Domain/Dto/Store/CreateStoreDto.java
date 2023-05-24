@@ -11,7 +11,7 @@ public class CreateStoreDto {
     String name;
     String region1depthName;
     String region2depthName;
-    String region3depth;
+    String region3depthName;
     String phoneNumber;
     String intro;
     LocalTime openTime;

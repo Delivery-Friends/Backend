@@ -1,5 +1,6 @@
 package DeliveryFriends.Backend.Controller;
 
+import DeliveryFriends.Backend.Domain.Dto.User.KakaoIdDto;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -38,5 +39,13 @@ public class ExceptionController {
     @ResponseBody
     public ExceptionResponse invalidRequst(InvalidDataAccessApiUsageException e) {
         return ExceptionResponse.builder().message("잘못된 요청입니다.").build();
+    }
+
+    @ResponseStatus(HttpStatus.OK)
+    @ExceptionHandler(ToJoinException.class)
+    @ResponseBody
+    public BaseResponse<KakaoIdDto> invalidRequst(ToJoinException e) {
+        String message = e.getMessage();
+        return new BaseResponse<>(new KakaoIdDto(message));
     }
 }

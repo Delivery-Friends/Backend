@@ -4,13 +4,11 @@ import DeliveryFriends.Backend.Controller.BaseException;
 import DeliveryFriends.Backend.Domain.Dto.TokensDto;
 import DeliveryFriends.Backend.Domain.User;
 import DeliveryFriends.Backend.Repository.UserRepository;
-import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.Jws;
-import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.SignatureAlgorithm;
+import io.jsonwebtoken.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 
@@ -22,6 +20,7 @@ import static DeliveryFriends.Backend.Controller.BaseResponseStatus.*;
 
 @Service
 @RequiredArgsConstructor
+@Transactional
 public class JWTService {
 
     @Value("${jwt.secret}")
@@ -60,38 +59,68 @@ public class JWTService {
         return new TokensDto(accessToken, refreshToken);
     }
 
-    /**
-     * Header에서 X-ACCESS-TOKEN 으로 JWT 추출
-     * @return String
-     */
-    public String getJwt(){
-        HttpServletRequest request = ((ServletRequestAttributes) RequestContextHolder.currentRequestAttributes()).getRequest();
-        return request.getHeader("X-ACCESS-TOKEN");
-    }
+    public TokensDto doRefresh() {
+        String refreshToken = getRefreshToken();
 
-    /**
-     * JWT에서 userId 추출
-     * @return long
-     * @throws BaseException EMPTY_JWT, INVALID_JWT
-     */
-    public Long getUserId() throws BaseException {
-        //1. JWT 추출
-        String accessToken = getJwt();
-        if(accessToken == null || accessToken.length() == 0){
-            throw new BaseException(EMPTY_JWT);
-        }
-
-        // 2. JWT parsing
         Jws<Claims> claims;
         try{
             claims = Jwts.parser()
                     .setSigningKey(secretKey)
-                    .parseClaimsJws(accessToken);
+                    .parseClaimsJws(refreshToken);
+        } catch (ExpiredJwtException e) { // 만료
+            throw new BaseException(EXPIRED_JWT);
+        } catch (Exception ignored) { // 변조
+            throw new BaseException(INVALID_JWT);
+        }
+
+        Long userId = getUserId(refreshToken);
+        Optional<User> findUser = userRepository.findById(userId);
+        if (!findUser.isPresent()) {
+            throw new BaseException(INVALID_JWT);
+        }
+        if (!refreshToken.equals(findUser.get().getRefreshToken())) {
+            throw new BaseException(INVALID_JWT);
+        }
+        return createJwt(userId);
+    }
+
+    public String getAccessToken(){
+        HttpServletRequest request = ((ServletRequestAttributes) RequestContextHolder.currentRequestAttributes()).getRequest();
+        return request.getHeader("ACCESS-TOKEN");
+    }
+
+    public String getRefreshToken(){
+        HttpServletRequest request = ((ServletRequestAttributes) RequestContextHolder.currentRequestAttributes()).getRequest();
+        return request.getHeader("REFRESH-TOKEN");
+    }
+
+    public Long getInfo() throws BaseException {
+        String token = getAccessToken();
+
+        Jws<Claims> claims;
+        try{
+            claims = Jwts.parser()
+                    .setSigningKey(secretKey)
+                    .parseClaimsJws(token);
+        } catch (ExpiredJwtException e) { // 만료
+            throw new BaseException(EXPIRED_JWT);
+        } catch (Exception ignored) { // 변조
+            throw new BaseException(INVALID_JWT);
+        }
+
+        return claims.getBody().get("userId",Long.class);
+    }
+
+    public Long getUserId(String token) throws BaseException {
+        Jws<Claims> claims;
+        try{
+            claims = Jwts.parser()
+                    .setSigningKey(secretKey)
+                    .parseClaimsJws(token);
         } catch (Exception ignored) {
             throw new BaseException(INVALID_JWT);
         }
 
-        // 3. userIdx 추출
         return claims.getBody().get("userId",Long.class);
     }
 }

@@ -1,6 +1,7 @@
 package DeliveryFriends.Backend.Service;
 
 import DeliveryFriends.Backend.Controller.BaseException;
+import DeliveryFriends.Backend.Controller.ToJoinException;
 import DeliveryFriends.Backend.Controller.feign.KakaoKapiFeign;
 import DeliveryFriends.Backend.Controller.feign.KakaoKauthFeign;
 import DeliveryFriends.Backend.Domain.Dto.Kakao.KakaoInfoRes;
@@ -12,14 +13,14 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
-import static DeliveryFriends.Backend.Controller.BaseResponseStatus.Unauthorized;
-
 @Service
+@Transactional
 @RequiredArgsConstructor
 public class OauthService {
 
@@ -35,39 +36,26 @@ public class OauthService {
 
     private final BCryptPasswordEncoder passwordEncoder;
 
-    public TokensDto getKakaoTokens(String code) {
+    public TokensDto getKakaoTokens(String code) throws ToJoinException {
         // 카카오에서 토큰 받기
         KakaoToken kakaoToken = kakaoKauthFeign.getAccessToken(
                 "authorization_code", KAKAO_API_KEY
-                , "http://localhost:9000/oauth/kakao/login", code
+//                , "http://localhost:9000/oauth/kakao/login", code
+                , "https://prod.jaehwan.shop/oauth/kakao/login", code
         );
 
         Map<String, String> headerMap = new HashMap<>();
         headerMap.put("authorization", "Bearer " + kakaoToken.getAccess_token());
 
         KakaoInfoRes kakaoInfoRes = kakaoKapiFeign.getUser(headerMap);
+        String kakaoId = kakaoInfoRes.getId();
 
-        Optional<User> findMember = userRepository.findByKakaoId(kakaoInfoRes.getId());
+        Optional<User> findMember = userRepository.findByKakaoId(kakaoId);
 
         if (findMember.isPresent()) {
             return jwtService.createJwt(findMember.get().getId());
         } else {
-            throw new BaseException(Unauthorized);
+            throw new ToJoinException(kakaoId);
         }
-    }
-
-    public String getKakaoId(String code) {
-        // 카카오에서 토큰 받기
-        KakaoToken kakaoToken = kakaoKauthFeign.getAccessToken(
-                "authorization_code", KAKAO_API_KEY
-                , "http://localhost:9000/oauth/kakao/login", code
-        );
-
-        Map<String, String> headerMap = new HashMap<>();
-        headerMap.put("authorization", "Bearer " + kakaoToken.getAccess_token());
-
-        KakaoInfoRes kakaoInfoRes = kakaoKapiFeign.getUser(headerMap);
-
-        return kakaoInfoRes.getId();
     }
 }
