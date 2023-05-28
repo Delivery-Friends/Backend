@@ -11,7 +11,7 @@ public enum BaseResponseStatus {
     Not_Found(404, "찾을 수 없습니다."),
 
 
-    EXISTS_EMAIL(10000, "존재하는 이메일입니다."),
+    EXISTS_KAKAOID(10000, "존재하는 카카오ID입니다."),
     FILE_CONVERT_ERROR(10001, "파일 변환에 실패하였습니다."),
     EMPTY_JWT(10002, "JWT가 비어있습니다."),
     INVALID_JWT(10003, "JWT에 오류가 있습니다."),

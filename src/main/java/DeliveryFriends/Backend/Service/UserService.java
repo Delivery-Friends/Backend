@@ -22,23 +22,24 @@ public class UserService {
     private final BCryptPasswordEncoder passwordEncoder;
     private final JWTService jwtService;
 
-    @Transactional
+    public Long getInfo() {
+        Long userId = jwtService.getInfo();
+
+        return userId;
+    }
+
     public TokensDto createUser(CreateUserReq req) throws BaseException {
         try {
-            Optional<User> findUser = userRepository.findByEmail(req.getEmail());
+            Optional<User> findUser = userRepository.findByKakaoId(req.getKakaoId());
             if(findUser.isPresent()) {
-                throw new BaseException(EXISTS_EMAIL);
+                throw new BaseException(EXISTS_KAKAOID);
             }
 
             User user = userRepository.save(
                     User.builder()
                             .name(req.getName())
                             .nickname(req.getNickname())
-                            .birth(req.getBirth())
-                            .email(req.getEmail())
-                            .password(passwordEncoder.encode(req.getPassword()))
                             .kakaoId(req.getKakaoId())
-                            .gender(req.getGender())
                             .point(0L)
                             .build());
 

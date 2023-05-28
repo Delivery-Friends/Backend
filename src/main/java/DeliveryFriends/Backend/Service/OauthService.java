@@ -24,8 +24,6 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class OauthService {
 
-    private String kakaoURL = "https://kauth.kakao.com/oauth/token";
-
     private final UserRepository userRepository;
     private final KakaoKauthFeign kakaoKauthFeign;
     private final KakaoKapiFeign kakaoKapiFeign;
@@ -36,13 +34,41 @@ public class OauthService {
 
     private final BCryptPasswordEncoder passwordEncoder;
 
+    public String getKakaoToken(String code) {
+        KakaoToken authorization_code = kakaoKauthFeign.getAccessToken(
+                "authorization_code", KAKAO_API_KEY
+                , "http://localhost:9000/oauth/kakao/token", code
+//                , "https://prod.jaehwan.shop/oauth/kakao/login", code
+        );
+        System.out.println(authorization_code.getAccess_token());
+        System.out.println(authorization_code.getExpires_in());
+        return authorization_code.getAccess_token();
+    }
+
+    public TokensDto getAcc(String accessToken) {
+        Map<String, String> headerMap = new HashMap<>();
+        headerMap.put("authorization", "Bearer " + accessToken);
+        KakaoInfoRes kakaoInfoRes = kakaoKapiFeign.getUser(headerMap);
+
+        String kakaoId = kakaoInfoRes.getId();
+
+        Optional<User> findMember = userRepository.findByKakaoId(kakaoId);
+
+        if (findMember.isPresent()) {
+            return jwtService.createJwt(findMember.get().getId());
+        } else {
+            throw new ToJoinException(kakaoId);
+        }
+    }
+
     public TokensDto getKakaoTokens(String code) throws ToJoinException {
         // 카카오에서 토큰 받기
         KakaoToken kakaoToken = kakaoKauthFeign.getAccessToken(
                 "authorization_code", KAKAO_API_KEY
-//                , "http://localhost:9000/oauth/kakao/login", code
-                , "https://prod.jaehwan.shop/oauth/kakao/login", code
+                , "http://localhost:3000/login/kakao", code
+//                , "https://prod.jaehwan.shop/oauth/kakao/login", code
         );
+        System.out.println("!!!!!!!!!!result : " + kakaoToken.getAccess_token());
 
         Map<String, String> headerMap = new HashMap<>();
         headerMap.put("authorization", "Bearer " + kakaoToken.getAccess_token());

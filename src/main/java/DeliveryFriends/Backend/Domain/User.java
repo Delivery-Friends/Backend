@@ -16,11 +16,7 @@ public class User extends BaseEntity {
 
     String name;
     String nickname;
-    LocalDate birth;
-    String email;
-    String password;
     String kakaoId;
-    String gender;
     Long point;
     String refreshToken;
 
@@ -29,14 +25,10 @@ public class User extends BaseEntity {
     Team team;
 
     @Builder
-    public User(String name, String nickname, LocalDate birth, String email, String password, String kakaoId, String gender, Long point) {
+    public User(String name, String nickname, String kakaoId, Long point) {
         this.name = name;
         this.nickname = nickname;
-        this.birth = birth;
-        this.email = email;
-        this.password = password;
         this.kakaoId = kakaoId;
-        this.gender = gender;
         this.point = point;
     }
 }
