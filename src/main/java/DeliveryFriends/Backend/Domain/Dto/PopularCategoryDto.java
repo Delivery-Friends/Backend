@@ -17,8 +17,8 @@ public class PopularCategoryDto implements Comparable<PopularCategoryDto> {
     @Override
     public int compareTo(PopularCategoryDto popularCategoryDto) {
         if (popularCategoryDto.count <= count) {
-            return 1;
+            return -1;
         }
-        return -1;
+        return 1;
     }
 }

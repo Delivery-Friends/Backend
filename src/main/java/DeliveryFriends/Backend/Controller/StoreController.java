@@ -53,4 +53,9 @@ public class StoreController {
     public BaseResponse<List<ReadMenuDto>> getStoreMenu(@PathVariable Long storeId) {
         return new BaseResponse<>(storeService.readMenu(storeId));
     }
+
+    @GetMapping("/popular/category")
+    public BaseResponse<List<String>> getPopularMenu() {
+        return new BaseResponse<>(storeService.getPopularCategory());
+    }
 }

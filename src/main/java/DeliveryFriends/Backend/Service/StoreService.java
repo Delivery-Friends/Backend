@@ -52,7 +52,6 @@ public class StoreService {
         }
 
         List<ReadStoresDto> result = new ArrayList<>();
-        System.out.println("@@" + storeList.size());
         for (SimpleStoreDto simpleStoreDto : storeList) {
             List<FilenameDto> medium = storeMediaRepository.getStoreMedium(simpleStoreDto.getId());
             result.add(new ReadStoresDto(simpleStoreDto, medium));
@@ -70,7 +69,7 @@ public class StoreService {
         categories.add("치킨");
         categories.add("피자");
         LocalDateTime now = LocalDateTime.now();
-        LocalDateTime past = LocalDateTime.now().minusHours(1);
+        LocalDateTime past = LocalDateTime.now().minusHours(3);
         ArrayList<PopularCategoryDto> arr = new ArrayList<>();
         for (String category : categories) {
             Long count = popularCategoryRepository.countByCategoryAndCreatedAtGreaterThanEqualAndCreatedAtLessThanEqual(category, past, now);
@@ -78,6 +77,7 @@ public class StoreService {
         }
 
         Collections.sort(arr);
+
         List<String> result = new ArrayList<>();
         result.add(arr.get(0).getCategory());
         result.add(arr.get(1).getCategory());

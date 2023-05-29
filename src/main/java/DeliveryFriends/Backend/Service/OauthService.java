@@ -40,8 +40,6 @@ public class OauthService {
                 , "http://localhost:9000/oauth/kakao/token", code
 //                , "https://prod.jaehwan.shop/oauth/kakao/login", code
         );
-        System.out.println(authorization_code.getAccess_token());
-        System.out.println(authorization_code.getExpires_in());
         return authorization_code.getAccess_token();
     }
 

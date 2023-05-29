@@ -129,9 +129,6 @@ public class UserService {
             for (ChoiceMenu choiceMenu : choiceMenus) {
                 CartMenuRes cartMenuRes = new CartMenuRes();
 
-                System.out.println(choiceMenu.getMenu().getName() + "@@@@@시작");
-
-
                 cartMenuRes.setName(choiceMenu.getMenu().getName());
                 cartMenuRes.setPrice(choiceMenu.getMenu().getPrice());
                 cartMenuRes.setCount(choiceMenu.getCount());
@@ -148,11 +145,7 @@ public class UserService {
                     cartMenuRes.setOptions(cartOptionsRes);
                     cartMenus.add(cartMenuRes);
                 }
-
-                System.out.println("@!@!: " + cartMenuRes);
                 cartRes.setMenus(cartMenus);
-
-                System.out.println(choiceMenu.getMenu().getName() + "@@@@@끝");
             }
             result.add(cartRes);
         }
