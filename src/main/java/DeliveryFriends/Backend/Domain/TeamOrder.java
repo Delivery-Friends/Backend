@@ -25,4 +25,11 @@ public class TeamOrder extends BaseEntity {
     @JoinColumn(name = "cart_id")
     @ManyToOne
     Cart cart;
+
+    public TeamOrder(Boolean isLeader, String orderStatus, Team team, Cart cart) {
+        this.isLeader = isLeader;
+        this.orderStatus = orderStatus;
+        this.team = team;
+        this.cart = cart;
+    }
 }

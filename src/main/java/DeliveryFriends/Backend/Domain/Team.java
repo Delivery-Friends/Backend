@@ -21,4 +21,22 @@ public class Team extends BaseEntity {
     @JoinColumn(name = "store_id")
     @ManyToOne
     Store store;
+
+    Long maxMember;
+
+    String basicAddress;
+    String detailedAddress;
+
+    String latitude;
+    String longitude;
+
+    public Team(LocalDateTime groupEndTime, Store store, Long maxMember, String basicAddress, String detailedAddress, String latitude, String longitude) {
+        this.groupEndTime = groupEndTime;
+        this.store = store;
+        this.maxMember = maxMember;
+        this.basicAddress = basicAddress;
+        this.detailedAddress = detailedAddress;
+        this.latitude = latitude;
+        this.longitude = longitude;
+    }
 }
