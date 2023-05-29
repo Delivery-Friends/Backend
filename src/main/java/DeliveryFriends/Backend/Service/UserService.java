@@ -144,8 +144,8 @@ public class UserService {
                     cartOptionRes.setCount(choiceOption.getCount());
                     cartOptionsRes.add(cartOptionRes);
                     cartMenuRes.setOptions(cartOptionsRes);
-                    cartMenus.add(cartMenuRes);
                 }
+                cartMenus.add(cartMenuRes);
                 cartRes.setMenus(cartMenus);
             }
             result.add(cartRes);

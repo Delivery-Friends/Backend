@@ -1,7 +1,6 @@
 package DeliveryFriends.Backend.Service;
 
 import DeliveryFriends.Backend.Controller.BaseException;
-import DeliveryFriends.Backend.Controller.BaseResponseStatus;
 import DeliveryFriends.Backend.Domain.*;
 import DeliveryFriends.Backend.Domain.Dto.FilenameDto;
 import DeliveryFriends.Backend.Domain.Dto.PopularCategoryDto;
