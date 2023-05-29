@@ -22,10 +22,17 @@ public class ChoiceOption extends BaseEntity {
     User user;
 
     @ManyToOne
+    @JoinColumn(name = "choice_menu_id")
+    ChoiceMenu choiceMenu;
+
+    @ManyToOne
     @JoinColumn(name = "menu_option_id")
     MenuOption menuOption;
 
-    @ManyToOne
-    @JoinColumn(name = "menu_option_group_id")
-    MenuOptionGroup menuOptionGroup;
+    public ChoiceOption(Long count, User user, ChoiceMenu choiceMenu, MenuOption menuOption) {
+        this.count = count;
+        this.user = user;
+        this.choiceMenu = choiceMenu;
+        this.menuOption = menuOption;
+    }
 }

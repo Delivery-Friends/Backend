@@ -36,10 +36,15 @@ public class StoreController {
         return new BaseResponse<>(storeService.addMenuOption(req));
     }
 
+    @GetMapping("/store/{storeId}")
+    public BaseResponse<StoreInfoDto> getStoreInfo(@PathVariable Long storeId) {
+        return new BaseResponse<>(storeService.getStoreInfo(storeId));
+    }
+
     @GetMapping("/stores")
     public BaseResponse<List<ReadStoresDto>> getStoreList(
-            @PageableDefault(size = 10, sort = "reviewCount", direction = Sort.Direction.ASC) Pageable pageable,
-            StoreCondDto cond
+            @PageableDefault(size = 10, sort = "reviewCount", direction = Sort.Direction.DESC) Pageable pageable,
+            @RequestParam(required = false) StoreCondDto cond
             ) {
         return new BaseResponse<>(storeService.getStoreList(pageable, cond));
     }

@@ -32,7 +32,9 @@ public class StoreRepositoryImpl implements StoreRepositoryCustom {
                 store.deliveryWaitTime,
                 store.packageAvailable,
                 store.packageWaitTime,
-                store.deliveryTip
+                store.deliveryTip,
+                store.reviewScore,
+                store.minPrice
         ))
                 .from(menu)
                 .where(
@@ -40,6 +42,7 @@ public class StoreRepositoryImpl implements StoreRepositoryCustom {
                         searchFilter(cond.getSearch()),
                         region1Filter(cond.getRegion1depthName()),
                         region2Filter(cond.getRegion2depthName()),
+                        categoryFilter(cond.getCategory()),
                         store.openTime.loe(LocalDateTime.now().toLocalTime()),
                         store.closeTime.goe(LocalDateTime.now().toLocalTime())
                 )
@@ -74,6 +77,13 @@ public class StoreRepositoryImpl implements StoreRepositoryCustom {
     private BooleanExpression region2Filter(String region2Name) {
         if (StringUtils.hasText(region2Name)) {
             return store.region2depthName.eq(region2Name) ;
+        }
+        return null;
+    }
+
+    private BooleanExpression categoryFilter(String category) {
+        if (StringUtils.hasText(category)) {
+            return store.category.like("%" + category + "%");
         }
         return null;
     }

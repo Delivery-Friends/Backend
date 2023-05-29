@@ -2,12 +2,9 @@ package DeliveryFriends.Backend.Service;
 
 import DeliveryFriends.Backend.Controller.BaseException;
 import DeliveryFriends.Backend.Controller.BaseResponseStatus;
+import DeliveryFriends.Backend.Domain.*;
 import DeliveryFriends.Backend.Domain.Dto.FilenameDto;
 import DeliveryFriends.Backend.Domain.Dto.Store.*;
-import DeliveryFriends.Backend.Domain.Menu;
-import DeliveryFriends.Backend.Domain.MenuOption;
-import DeliveryFriends.Backend.Domain.MenuOptionGroup;
-import DeliveryFriends.Backend.Domain.Store;
 import DeliveryFriends.Backend.Repository.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
@@ -29,8 +26,17 @@ public class StoreService {
     private final MenuOptionRepository menuOptionRepository;
 
     public Long addStore(CreateStoreDto createStoreDto) {
-        Store store = new Store(createStoreDto, 0L, 0L);
+        Store store = new Store(createStoreDto, 0F, 0L, 0L);
         return storeRepository.save(store).getId();
+    }
+
+    public StoreInfoDto getStoreInfo(Long storeId) {
+        Optional<Store> findStore = storeRepository.findById(storeId);
+        if (!findStore.isPresent()) {
+            throw new BaseException(BaseResponseStatus.CANNOT_FOUND_STORE);
+        }
+        Store store = findStore.get();
+        return new StoreInfoDto(store);
     }
 
     public List<ReadStoresDto> getStoreList(Pageable pageable, StoreCondDto cond) {
@@ -105,6 +111,7 @@ public class StoreService {
                     readMenuOptions.add(readMenuOption);
                 }
                 readMenuOptionGroup.setReadMenuOptionList(readMenuOptions);
+                readMenuOptionGroups.add(readMenuOptionGroup);
             }
             readMenuDto.setReadMenuOptionGroupList(readMenuOptionGroups);
             result.add(readMenuDto);

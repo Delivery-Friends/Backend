@@ -15,15 +15,19 @@ public class SimpleStoreDto {
     Boolean packageAvailable;
     Long packageWaitTime;
     Long deliveryTip;
+    Float reviewScore;
+    Long minPrice;
 
     @Builder
     @QueryProjection
-    public SimpleStoreDto(Long id, String name, Long deliveryWaitTime, Boolean packageAvailable, Long packageWaitTime, Long deliveryTip) {
+    public SimpleStoreDto(Long id, String name, Long deliveryWaitTime, Boolean packageAvailable, Long packageWaitTime, Long deliveryTip, Float reviewScore, Long minPrice) {
         this.id = id;
         this.name = name;
         this.deliveryWaitTime = deliveryWaitTime;
         this.packageAvailable = packageAvailable;
         this.packageWaitTime = packageWaitTime;
         this.deliveryTip = deliveryTip;
+        this.reviewScore = reviewScore;
+        this.minPrice = minPrice;
     }
 }

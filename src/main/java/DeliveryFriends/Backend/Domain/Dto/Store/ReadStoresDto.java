@@ -16,6 +16,8 @@ public class ReadStoresDto {
     Boolean packageAvailable;
     Long packageWaitTime;
     Long deliveryTip;
+    Float reviewScore;
+    Long minPrice;
     List<FilenameDto> fileNames;
 
     public ReadStoresDto(SimpleStoreDto simpleStoreDto, List<FilenameDto> fileNames) {
@@ -25,6 +27,8 @@ public class ReadStoresDto {
         this.packageAvailable = simpleStoreDto.getPackageAvailable();
         this.packageWaitTime = simpleStoreDto.getPackageWaitTime();
         this.deliveryTip = simpleStoreDto.getDeliveryTip();
+        this.reviewScore = simpleStoreDto.getReviewScore();
+        this.minPrice = simpleStoreDto.getMinPrice();
         this.fileNames = fileNames;
     }
 }

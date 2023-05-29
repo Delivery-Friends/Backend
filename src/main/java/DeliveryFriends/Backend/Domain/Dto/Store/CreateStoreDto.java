@@ -21,4 +21,6 @@ public class CreateStoreDto {
     Long deliveryTip;
     Boolean packageAvailable;
     Long packageWaitTime;
+
+    Long minPrice;
 }

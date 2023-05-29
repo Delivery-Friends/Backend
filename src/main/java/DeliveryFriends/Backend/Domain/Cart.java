@@ -20,10 +20,11 @@ public class Cart extends BaseEntity {
     User user;
 
     @ManyToOne
-    @JoinColumn(name = "choice_menu_id")
-    ChoiceMenu choiceMenu;
-
-    @ManyToOne
     @JoinColumn(name = "store_id")
     Store store;
+
+    public Cart(User user, Store store) {
+        this.user = user;
+        this.store = store;
+    }
 }

@@ -21,7 +21,7 @@ public class Store extends BaseEntity {
     String name;
     String region1depthName;
     String region2depthName;
-    String region3depth;
+    String region3depthName;
     String phoneNumber;
     String intro;
     LocalTime openTime;
@@ -32,15 +32,17 @@ public class Store extends BaseEntity {
     Boolean packageAvailable;
     Long packageWaitTime;
 
+    Float reviewScore;
     Long reviewCount;
     Long orderCount;
+    Long minPrice;
+    String category;
 
-    @Builder
-    public Store(String name, String region1depthName, String region2depthName, String region3depth, String phoneNumber, String intro, LocalTime openTime, LocalTime closeTime, String registrationNumber, Long deliveryWaitTime, Long deliveryTip, Boolean packageAvailable, Long packageWaitTime, Long reviewCount, Long orderCount) {
+    public Store(String name, String region1depthName, String region2depthName, String region3depth, String phoneNumber, String intro, LocalTime openTime, LocalTime closeTime, String registrationNumber, Long deliveryWaitTime, Long deliveryTip, Boolean packageAvailable, Long packageWaitTime, Float reviewScore, Long reviewCount, Long orderCount, Long minPrice) {
         this.name = name;
         this.region1depthName = region1depthName;
         this.region2depthName = region2depthName;
-        this.region3depth = region3depth;
+        this.region3depthName = region3depth;
         this.phoneNumber = phoneNumber;
         this.intro = intro;
         this.openTime = openTime;
@@ -50,15 +52,18 @@ public class Store extends BaseEntity {
         this.deliveryTip = deliveryTip;
         this.packageAvailable = packageAvailable;
         this.packageWaitTime = packageWaitTime;
+        this.reviewScore = reviewScore;
         this.reviewCount = reviewCount;
         this.orderCount = orderCount;
+        this.minPrice = minPrice;
     }
 
-    public Store(CreateStoreDto createStoreDto, Long reviewCount, Long orderCount) {
+    @Builder
+    public Store(CreateStoreDto createStoreDto, Float reviewScore, Long reviewCount, Long orderCount) {
         this.name = createStoreDto.getName();
         this.region1depthName = createStoreDto.getRegion1depthName();
         this.region2depthName = createStoreDto.getRegion2depthName();
-        this.region3depth = createStoreDto.getRegion3depthName();
+        this.region3depthName = createStoreDto.getRegion3depthName();
         this.phoneNumber = createStoreDto.getPhoneNumber();
         this.intro = createStoreDto.getIntro();
         this.openTime = createStoreDto.getOpenTime();
@@ -68,8 +73,10 @@ public class Store extends BaseEntity {
         this.deliveryTip = createStoreDto.getDeliveryTip();
         this.packageAvailable = createStoreDto.getPackageAvailable();
         this.packageWaitTime = createStoreDto.getPackageWaitTime();
+        this.reviewScore = reviewScore;
         this.reviewCount = reviewCount;
         this.orderCount = orderCount;
+        this.minPrice = createStoreDto.getMinPrice();
     }
 
 

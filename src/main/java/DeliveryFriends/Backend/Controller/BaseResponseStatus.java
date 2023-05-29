@@ -22,7 +22,9 @@ public enum BaseResponseStatus {
     CANNOT_FOUND_STORE(20000, "가게를 찾을 수 없습니다."),
     CANNOT_FOUND_MENU(20001, "메뉴를 찾을 수 없습니다."),
     CANNOT_FOUND_MENU_OPTION_GROUP(20002, "옵션 그룹을 찾을 수 없습니다."),
-    CANNOT_FOUND_MENU_OPTION(20003, "옵션을 찾을 수 없습니다.");
+    CANNOT_FOUND_MENU_OPTION(20003, "옵션을 찾을 수 없습니다."),
+    CANNOT_FOUND_USER(20004, "옵션을 찾을 수 없습니다."),
+    CANNOT_FOUND_CART(20005, "카트를 찾을 수 없습니다.");
 
 
     private final int statusCode;

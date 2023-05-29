@@ -36,6 +36,7 @@ public class JWTService {
     private String KAKAO_API_KEY;
 
     private final UserRepository userRepository;
+
     public TokensDto createJwt(long userId){
         Date now = new Date();
         String accessToken = Jwts.builder()

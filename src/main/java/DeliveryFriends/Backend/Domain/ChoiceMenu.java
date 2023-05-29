@@ -18,6 +18,10 @@ public class ChoiceMenu extends BaseEntity {
     Long count;
 
     @ManyToOne
+    @JoinColumn(name = "cart_id")
+    Cart cart;
+
+    @ManyToOne
     @JoinColumn(name = "user_id")
     User user;
 
@@ -25,7 +29,10 @@ public class ChoiceMenu extends BaseEntity {
     @JoinColumn(name = "menu_id")
     Menu menu;
 
-    @ManyToOne
-    @JoinColumn(name = "choice_option_id")
-    ChoiceOption choiceOption;
+    public ChoiceMenu(Long count, Cart cart, User user, Menu menu) {
+        this.count = count;
+        this.cart = cart;
+        this.user = user;
+        this.menu = menu;
+    }
 }

@@ -9,4 +9,5 @@ public class StoreCondDto {
     String search;
     String region1depthName;
     String region2depthName;
+    String category;
 }

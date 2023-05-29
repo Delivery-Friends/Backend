@@ -65,10 +65,9 @@ public class OauthService {
         // 카카오에서 토큰 받기
         KakaoToken kakaoToken = kakaoKauthFeign.getAccessToken(
                 "authorization_code", KAKAO_API_KEY
-                , "http://localhost:3000/login/kakao", code
+                , "http://localhost:9000/onlyTestingLogin", code
 //                , "https://prod.jaehwan.shop/oauth/kakao/login", code
         );
-        System.out.println("!!!!!!!!!!result : " + kakaoToken.getAccess_token());
 
         Map<String, String> headerMap = new HashMap<>();
         headerMap.put("authorization", "Bearer " + kakaoToken.getAccess_token());
