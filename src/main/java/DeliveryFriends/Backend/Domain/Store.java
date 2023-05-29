@@ -38,7 +38,7 @@ public class Store extends BaseEntity {
     Long minPrice;
     String category;
 
-    public Store(String name, String region1depthName, String region2depthName, String region3depth, String phoneNumber, String intro, LocalTime openTime, LocalTime closeTime, String registrationNumber, Long deliveryWaitTime, Long deliveryTip, Boolean packageAvailable, Long packageWaitTime, Float reviewScore, Long reviewCount, Long orderCount, Long minPrice) {
+    public Store(String name, String region1depthName, String region2depthName, String region3depth, String phoneNumber, String intro, LocalTime openTime, LocalTime closeTime, String registrationNumber, Long deliveryWaitTime, Long deliveryTip, Boolean packageAvailable, Long packageWaitTime, Float reviewScore, Long reviewCount, Long orderCount, Long minPrice, String category) {
         this.name = name;
         this.region1depthName = region1depthName;
         this.region2depthName = region2depthName;
@@ -56,6 +56,7 @@ public class Store extends BaseEntity {
         this.reviewCount = reviewCount;
         this.orderCount = orderCount;
         this.minPrice = minPrice;
+        this.category = category;
     }
 
     @Builder
@@ -77,6 +78,7 @@ public class Store extends BaseEntity {
         this.reviewCount = reviewCount;
         this.orderCount = orderCount;
         this.minPrice = createStoreDto.getMinPrice();
+        this.category = createStoreDto.getCategory();
     }
 
 

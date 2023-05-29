@@ -44,7 +44,7 @@ public class StoreController {
     @GetMapping("/stores")
     public BaseResponse<List<ReadStoresDto>> getStoreList(
             @PageableDefault(size = 10, sort = "reviewCount", direction = Sort.Direction.DESC) Pageable pageable,
-            @RequestParam(required = false) StoreCondDto cond
+            StoreCondDto cond
             ) {
         return new BaseResponse<>(storeService.getStoreList(pageable, cond));
     }

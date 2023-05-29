@@ -4,14 +4,18 @@ import DeliveryFriends.Backend.Controller.BaseException;
 import DeliveryFriends.Backend.Controller.BaseResponseStatus;
 import DeliveryFriends.Backend.Domain.*;
 import DeliveryFriends.Backend.Domain.Dto.FilenameDto;
+import DeliveryFriends.Backend.Domain.Dto.PopularCategoryDto;
 import DeliveryFriends.Backend.Domain.Dto.Store.*;
 import DeliveryFriends.Backend.Repository.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
@@ -24,6 +28,7 @@ public class StoreService {
     private final StoreMediaRepository storeMediaRepository;
     private final MenuOptionGroupRepository menuOptionGroupRepository;
     private final MenuOptionRepository menuOptionRepository;
+    private final PopularCategoryRepository popularCategoryRepository;
 
     public Long addStore(CreateStoreDto createStoreDto) {
         Store store = new Store(createStoreDto, 0F, 0L, 0L);
@@ -41,11 +46,45 @@ public class StoreService {
 
     public List<ReadStoresDto> getStoreList(Pageable pageable, StoreCondDto cond) {
         List<SimpleStoreDto> storeList = storeRepository.getStoreList(pageable, cond);
+        if (StringUtils.hasText(cond.getCategory())) {
+            PopularCategory popularCategory = new PopularCategory(cond.getCategory());
+            popularCategoryRepository.save(popularCategory);
+        }
+
         List<ReadStoresDto> result = new ArrayList<>();
+        System.out.println("@@" + storeList.size());
         for (SimpleStoreDto simpleStoreDto : storeList) {
             List<FilenameDto> medium = storeMediaRepository.getStoreMedium(simpleStoreDto.getId());
             result.add(new ReadStoresDto(simpleStoreDto, medium));
         }
+        return result;
+    }
+
+    public List<String> getPopularCategory() {
+        List<String> categories = new ArrayList<>();
+        categories.add("한식");
+        categories.add("중식");
+        categories.add("일식");
+        categories.add("양식");
+        categories.add("분식");
+        categories.add("치킨");
+        categories.add("피자");
+        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime past = LocalDateTime.now().minusHours(1);
+        ArrayList<PopularCategoryDto> arr = new ArrayList<>();
+        for (String category : categories) {
+            Long count = popularCategoryRepository.countByCategoryAndCreatedAtGreaterThanEqualAndCreatedAtLessThanEqual(category, past, now);
+            arr.add(new PopularCategoryDto(category, count));
+        }
+
+        Collections.sort(arr);
+        List<String> result = new ArrayList<>();
+        result.add(arr.get(0).getCategory());
+        result.add(arr.get(1).getCategory());
+        result.add(arr.get(2).getCategory());
+        result.add(arr.get(3).getCategory());
+        result.add(arr.get(4).getCategory());
+
         return result;
     }
 

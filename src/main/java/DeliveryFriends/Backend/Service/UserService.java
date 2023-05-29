@@ -9,6 +9,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -38,6 +39,9 @@ public class UserService {
     }
 
     public TokensDto createUser(CreateUserReq req) throws BaseException {
+        if (StringUtils.hasText(req.getKakaoId()) || StringUtils.hasText(req.getNickname()) || StringUtils.hasText(req.getName())) {
+            throw new BaseException(Bad_Request);
+        }
         try {
             Optional<User> findUser = userRepository.findByKakaoId(req.getKakaoId());
             if(findUser.isPresent()) {

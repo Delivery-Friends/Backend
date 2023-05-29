@@ -26,7 +26,7 @@ public class StoreRepositoryImpl implements StoreRepositoryCustom {
 
     @Override
     public List<SimpleStoreDto> getStoreList(Pageable pageable, StoreCondDto cond) {
-        JPAQuery<SimpleStoreDto> query = queryFactory.select(new QSimpleStoreDto(
+        JPAQuery<SimpleStoreDto> query = queryFactory.selectDistinct(new QSimpleStoreDto(
                 store.id,
                 store.name,
                 store.deliveryWaitTime,
@@ -46,7 +46,7 @@ public class StoreRepositoryImpl implements StoreRepositoryCustom {
                         store.openTime.loe(LocalDateTime.now().toLocalTime()),
                         store.closeTime.goe(LocalDateTime.now().toLocalTime())
                 )
-                .join(menu.store, store)
+                .innerJoin(menu.store, store)
                 .offset(pageable.getOffset())
                 .limit(pageable.getPageSize());
 
@@ -69,14 +69,14 @@ public class StoreRepositoryImpl implements StoreRepositoryCustom {
 
     private BooleanExpression region1Filter(String region1Name) {
         if (StringUtils.hasText(region1Name)) {
-            return store.region1depthName.eq(region1Name) ;
+            return store.region1depthName.eq(region1Name);
         }
         return null;
     }
 
     private BooleanExpression region2Filter(String region2Name) {
         if (StringUtils.hasText(region2Name)) {
-            return store.region2depthName.eq(region2Name) ;
+            return store.region2depthName.eq(region2Name);
         }
         return null;
     }
