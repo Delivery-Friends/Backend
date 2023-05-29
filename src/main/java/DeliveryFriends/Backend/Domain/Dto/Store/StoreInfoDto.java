@@ -25,7 +25,7 @@ public class StoreInfoDto {
     Boolean packageAvailable;
     Long packageWaitTime;
 
-    Float reviewScore;
+    Long reviewScore;
     Long reviewCount;
     Long orderCount;
 

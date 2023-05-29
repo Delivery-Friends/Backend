@@ -34,7 +34,8 @@ public class StoreRepositoryImpl implements StoreRepositoryCustom {
                 store.packageWaitTime,
                 store.deliveryTip,
                 store.reviewScore,
-                store.minPrice
+                store.minPrice,
+                store.reviewCount
         ))
                 .from(menu)
                 .where(

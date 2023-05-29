@@ -54,6 +54,7 @@ public class UserService {
                             .nickname(req.getNickname())
                             .kakaoId(req.getKakaoId())
                             .point(0L)
+                            .imgSrc("")
                             .build());
 
             return jwtService.createJwt(user.getId());

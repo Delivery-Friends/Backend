@@ -19,6 +19,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
+import static DeliveryFriends.Backend.Controller.BaseResponseStatus.*;
+
 @Service
 @Transactional
 @RequiredArgsConstructor
@@ -29,16 +31,20 @@ public class StoreService {
     private final MenuOptionGroupRepository menuOptionGroupRepository;
     private final MenuOptionRepository menuOptionRepository;
     private final PopularCategoryRepository popularCategoryRepository;
+    private final UserRepository userRepository;
+    private final UserOrderRepository userOrderRepository;
+    private final ReviewRepository reviewRepository;
+    private final ReviewMediaRepository reviewMediaRepository;
 
     public Long addStore(CreateStoreDto createStoreDto) {
-        Store store = new Store(createStoreDto, 0F, 0L, 0L);
+        Store store = new Store(createStoreDto, 0L, 0L, 0L);
         return storeRepository.save(store).getId();
     }
 
     public StoreInfoDto getStoreInfo(Long storeId) {
         Optional<Store> findStore = storeRepository.findById(storeId);
         if (!findStore.isPresent()) {
-            throw new BaseException(BaseResponseStatus.CANNOT_FOUND_STORE);
+            throw new BaseException(CANNOT_FOUND_STORE);
         }
         Store store = findStore.get();
         return new StoreInfoDto(store);
@@ -54,7 +60,33 @@ public class StoreService {
         List<ReadStoresDto> result = new ArrayList<>();
         for (SimpleStoreDto simpleStoreDto : storeList) {
             List<FilenameDto> medium = storeMediaRepository.getStoreMedium(simpleStoreDto.getId());
-            result.add(new ReadStoresDto(simpleStoreDto, medium));
+            if (simpleStoreDto.getReviewCount() > 0) {
+                ReadStoresDto readStoresDto = new ReadStoresDto(
+                        simpleStoreDto.getId(),
+                        simpleStoreDto.getName(),
+                        simpleStoreDto.getDeliveryWaitTime(),
+                        simpleStoreDto.getPackageAvailable(),
+                        simpleStoreDto.getPackageWaitTime(),
+                        simpleStoreDto.getDeliveryTip(),
+                        (float) (simpleStoreDto.getReviewScore() / simpleStoreDto.getReviewCount()),
+                        simpleStoreDto.getMinPrice(),
+                        medium
+                );
+                result.add(readStoresDto);
+            } else {
+                ReadStoresDto readStoresDto = new ReadStoresDto(
+                        simpleStoreDto.getId(),
+                        simpleStoreDto.getName(),
+                        simpleStoreDto.getDeliveryWaitTime(),
+                        simpleStoreDto.getPackageAvailable(),
+                        simpleStoreDto.getPackageWaitTime(),
+                        simpleStoreDto.getDeliveryTip(),
+                        0F,
+                        simpleStoreDto.getMinPrice(),
+                        medium
+                );
+                result.add(readStoresDto);
+            }
         }
         return result;
     }
@@ -69,7 +101,7 @@ public class StoreService {
         categories.add("치킨");
         categories.add("피자");
         LocalDateTime now = LocalDateTime.now();
-        LocalDateTime past = LocalDateTime.now().minusHours(3);
+        LocalDateTime past = LocalDateTime.now().minusHours(1);
         ArrayList<PopularCategoryDto> arr = new ArrayList<>();
         for (String category : categories) {
             Long count = popularCategoryRepository.countByCategoryAndCreatedAtGreaterThanEqualAndCreatedAtLessThanEqual(category, past, now);
@@ -91,7 +123,7 @@ public class StoreService {
     public Long addMenu(CreateMenuDto createMenuDto) {
         Optional<Store> findStore = storeRepository.findById(createMenuDto.getStoreId());
         if (!findStore.isPresent()) {
-            throw new BaseException(BaseResponseStatus.CANNOT_FOUND_STORE);
+            throw new BaseException(CANNOT_FOUND_STORE);
         }
         Menu menu = new Menu(createMenuDto, findStore.get());
         return menuRepository.save(menu).getId();
@@ -100,7 +132,7 @@ public class StoreService {
     public Long addMenuOptionGroup(CreateMenuOptionGroupDto createMenuOptionGroupDto) {
         Optional<Menu> findMenu = menuRepository.findById(createMenuOptionGroupDto.getMenuId());
         if (!findMenu.isPresent()) {
-            throw new BaseException(BaseResponseStatus.CANNOT_FOUND_MENU);
+            throw new BaseException(CANNOT_FOUND_MENU);
         }
         MenuOptionGroup menuOptionGroup = new MenuOptionGroup(createMenuOptionGroupDto, findMenu.get());
         return menuOptionGroupRepository.save(menuOptionGroup).getId();
@@ -109,7 +141,7 @@ public class StoreService {
     public Long addMenuOption(CreateMenuOptionDto createMenuOptionDto) {
         Optional<MenuOptionGroup> findMenuOptionGroup = menuOptionGroupRepository.findById(createMenuOptionDto.getMenuOptionGroupId());
         if (!findMenuOptionGroup.isPresent()) {
-            throw new BaseException(BaseResponseStatus.CANNOT_FOUND_MENU_OPTION_GROUP);
+            throw new BaseException(CANNOT_FOUND_MENU_OPTION_GROUP);
         }
         MenuOption menuOptionGroup = new MenuOption(createMenuOptionDto, findMenuOptionGroup.get());
         return menuOptionRepository.save(menuOptionGroup).getId();
@@ -120,7 +152,7 @@ public class StoreService {
 
         Optional<Store> findStore = storeRepository.findById(storeId);
         if (!findStore.isPresent()) {
-            throw new BaseException(BaseResponseStatus.CANNOT_FOUND_STORE);
+            throw new BaseException(CANNOT_FOUND_STORE);
         }
         List<Menu> menus = menuRepository.findByStoreAndDeleted(findStore.get(), false);
         for (Menu menu : menus) {
@@ -154,6 +186,62 @@ public class StoreService {
             }
             readMenuDto.setReadMenuOptionGroupList(readMenuOptionGroups);
             result.add(readMenuDto);
+        }
+        return result;
+    }
+
+    public List<ReviewRes> addReview(ReviewReq req) throws BaseException {
+        Optional<User> findUser = userRepository.findById(req.getUserId());
+        if (!findUser.isPresent()) {
+            throw new BaseException(CANNOT_FOUND_USER);
+        }
+        User user = findUser.get();
+        Optional<UserOrder> findOrder = userOrderRepository.findById(req.getOrderId());
+        if (!findOrder.isPresent()) {
+            throw new BaseException(CANNOT_FOUND_STORE);
+        }
+        if (reviewRepository.findByOrder(findOrder.get()).isPresent()) {
+            throw new BaseException(ALREADY_WRITED_REVIEW);
+        }
+        UserOrder userOrder = findOrder.get();
+        Store store = userOrder.getStore();
+        store.setReviewScore(store.getReviewScore() + req.getScore());
+        store.setReviewCount(store.getReviewCount() + 1);
+
+        Review review = new Review(req.getScore(), req.getContent(), userOrder, user, store);
+
+        for (String filename : req.getMedia()) {
+            ReviewMedia reviewMedia = new ReviewMedia(filename, review);
+            reviewMediaRepository.save(reviewMedia);
+        }
+        reviewRepository.save(review);
+
+        return getReview(store.getId());
+    }
+
+    public List<ReviewRes> getReview(Long storeId) {
+        Optional<Store> findStore = storeRepository.findById(storeId);
+        if (!findStore.isPresent()) {
+            throw new BaseException(CANNOT_FOUND_STORE);
+        }
+        List<ReviewRes> result = new ArrayList<>();
+        List<Review> reviews = reviewRepository.findByStore(findStore.get());
+        for (Review review : reviews) {
+            List<ReviewMedia> reviewMedium = reviewMediaRepository.findByReview(review);
+            List<String> medium = new ArrayList<>();
+            for (ReviewMedia reviewMedia : reviewMedium) {
+                medium.add(reviewMedia.getFileName());
+            }
+
+            ReviewRes reviewRes = new ReviewRes(
+                    review.getUser().getNickname(),
+                    review.getUser().getImgSrc(),
+                    review.getScore(),
+                    review.getContent(),
+                    review.getCreatedAt(),
+                    medium
+            );
+            result.add(reviewRes);
         }
         return result;
     }

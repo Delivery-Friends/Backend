@@ -20,15 +20,15 @@ public class ReadStoresDto {
     Long minPrice;
     List<FilenameDto> fileNames;
 
-    public ReadStoresDto(SimpleStoreDto simpleStoreDto, List<FilenameDto> fileNames) {
-        this.id = simpleStoreDto.getId();
-        this.name = simpleStoreDto.getName();
-        this.deliveryWaitTime = simpleStoreDto.getDeliveryWaitTime();
-        this.packageAvailable = simpleStoreDto.getPackageAvailable();
-        this.packageWaitTime = simpleStoreDto.getPackageWaitTime();
-        this.deliveryTip = simpleStoreDto.getDeliveryTip();
-        this.reviewScore = simpleStoreDto.getReviewScore();
-        this.minPrice = simpleStoreDto.getMinPrice();
+    public ReadStoresDto(Long id, String name, Long deliveryWaitTime, Boolean packageAvailable, Long packageWaitTime, Long deliveryTip, Float reviewScore, Long minPrice, List<FilenameDto> fileNames) {
+        this.id = id;
+        this.name = name;
+        this.deliveryWaitTime = deliveryWaitTime;
+        this.packageAvailable = packageAvailable;
+        this.packageWaitTime = packageWaitTime;
+        this.deliveryTip = deliveryTip;
+        this.reviewScore = reviewScore;
+        this.minPrice = minPrice;
         this.fileNames = fileNames;
     }
 }

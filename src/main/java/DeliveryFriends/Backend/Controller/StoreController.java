@@ -8,7 +8,6 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.web.bind.annotation.*;
 
-import java.time.LocalTime;
 import java.util.List;
 
 @RestController
@@ -58,4 +57,15 @@ public class StoreController {
     public BaseResponse<List<String>> getPopularMenu() {
         return new BaseResponse<>(storeService.getPopularCategory());
     }
+
+    @PostMapping("/store/review/add")
+    public List<ReviewRes> addReview(@RequestBody ReviewReq addReviewReq) {
+        return storeService.addReview(addReviewReq);
+    }
+
+    @GetMapping("/store/review/{storeId}")
+    public List<ReviewRes> getReview(@PathVariable Long storeId) {
+        return storeService.getReview(storeId);
+    }
+
 }

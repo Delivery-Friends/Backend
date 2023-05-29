@@ -25,4 +25,15 @@ public class Review extends BaseEntity {
     @ManyToOne
     @JoinColumn(name = "user_id")
     User user;
+
+    @OneToOne
+    Store store;
+
+    public Review(Long score, String content, UserOrder order, User user, Store store) {
+        this.score = score;
+        this.content = content;
+        this.order = order;
+        this.user = user;
+        this.store = store;
+    }
 }

@@ -20,4 +20,9 @@ public class ReviewMedia extends BaseEntity {
     @ManyToOne
     @JoinColumn(name = "review_id")
     Review review;
+
+    public ReviewMedia(String fileName, Review review) {
+        this.fileName = fileName;
+        this.review = review;
+    }
 }

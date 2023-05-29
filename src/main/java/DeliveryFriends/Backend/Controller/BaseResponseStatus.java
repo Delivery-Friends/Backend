@@ -24,7 +24,9 @@ public enum BaseResponseStatus {
     CANNOT_FOUND_MENU_OPTION_GROUP(20002, "옵션 그룹을 찾을 수 없습니다."),
     CANNOT_FOUND_MENU_OPTION(20003, "옵션을 찾을 수 없습니다."),
     CANNOT_FOUND_USER(20004, "옵션을 찾을 수 없습니다."),
-    CANNOT_FOUND_CART(20005, "카트를 찾을 수 없습니다.");
+    CANNOT_FOUND_CART(20005, "카트를 찾을 수 없습니다."),
+
+    ALREADY_WRITED_REVIEW(30000, "리뷰가 이미 작성된 주문입니다.");
 
 
     private final int statusCode;

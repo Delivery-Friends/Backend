@@ -21,11 +21,13 @@ public class UserOrder extends BaseEntity {
     @ManyToOne
     User user;
 
-    @JoinColumn(name = "choice_menu_id")
-    @ManyToOne
-    ChoiceMenu choiceMenu;
-
     @JoinColumn(name = "pay_id")
     @ManyToOne
     Pay pay;
+
+    @JoinColumn(name = "store_id")
+    @ManyToOne
+    Store store;
+
+    String order_info;
 }

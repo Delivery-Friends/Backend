@@ -4,6 +4,7 @@ import DeliveryFriends.Backend.Domain.Dto.Store.CreateStoreDto;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
@@ -13,6 +14,7 @@ import java.time.LocalTime;
 
 @Entity
 @Getter
+@Setter
 @NoArgsConstructor
 public class Store extends BaseEntity {
     @Id@GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -32,13 +34,13 @@ public class Store extends BaseEntity {
     Boolean packageAvailable;
     Long packageWaitTime;
 
-    Float reviewScore;
+    Long reviewScore;
     Long reviewCount;
     Long orderCount;
     Long minPrice;
     String category;
 
-    public Store(String name, String region1depthName, String region2depthName, String region3depth, String phoneNumber, String intro, LocalTime openTime, LocalTime closeTime, String registrationNumber, Long deliveryWaitTime, Long deliveryTip, Boolean packageAvailable, Long packageWaitTime, Float reviewScore, Long reviewCount, Long orderCount, Long minPrice, String category) {
+    public Store(String name, String region1depthName, String region2depthName, String region3depth, String phoneNumber, String intro, LocalTime openTime, LocalTime closeTime, String registrationNumber, Long deliveryWaitTime, Long deliveryTip, Boolean packageAvailable, Long packageWaitTime, Long reviewScore, Long reviewCount, Long orderCount, Long minPrice, String category) {
         this.name = name;
         this.region1depthName = region1depthName;
         this.region2depthName = region2depthName;
@@ -60,7 +62,7 @@ public class Store extends BaseEntity {
     }
 
     @Builder
-    public Store(CreateStoreDto createStoreDto, Float reviewScore, Long reviewCount, Long orderCount) {
+    public Store(CreateStoreDto createStoreDto, Long reviewScore, Long reviewCount, Long orderCount) {
         this.name = createStoreDto.getName();
         this.region1depthName = createStoreDto.getRegion1depthName();
         this.region2depthName = createStoreDto.getRegion2depthName();

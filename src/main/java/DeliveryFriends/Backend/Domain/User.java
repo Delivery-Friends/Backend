@@ -19,16 +19,18 @@ public class User extends BaseEntity {
     String kakaoId;
     Long point;
     String refreshToken;
+    String imgSrc;
 
     @JoinColumn(name = "team_id")
     @ManyToOne
     Team team;
 
     @Builder
-    public User(String name, String nickname, String kakaoId, Long point) {
+    public User(String name, String nickname, String kakaoId, Long point, String imgSrc) {
         this.name = name;
         this.nickname = nickname;
         this.kakaoId = kakaoId;
         this.point = point;
+        this.imgSrc = imgSrc;
     }
 }
