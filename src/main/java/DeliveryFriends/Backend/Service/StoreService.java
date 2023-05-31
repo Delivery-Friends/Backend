@@ -34,9 +34,10 @@ public class StoreService {
     private final UserOrderRepository userOrderRepository;
     private final ReviewRepository reviewRepository;
     private final ReviewMediaRepository reviewMediaRepository;
+    private final MenuMediaRepository menuMediaRepository;
 
     public Long addStore(CreateStoreDto createStoreDto) {
-        Store store = new Store(createStoreDto, 0L, 0L, 0L);
+        Store store = new Store(createStoreDto, 0L, 0L, 0L, 0L);
         return storeRepository.save(store).getId();
     }
 
@@ -68,6 +69,7 @@ public class StoreService {
                         simpleStoreDto.getPackageWaitTime(),
                         simpleStoreDto.getDeliveryTip(),
                         (float) (simpleStoreDto.getReviewScore() / simpleStoreDto.getReviewCount()),
+                        simpleStoreDto.getReviewCount(),
                         simpleStoreDto.getMinPrice(),
                         medium
                 );
@@ -81,6 +83,7 @@ public class StoreService {
                         simpleStoreDto.getPackageWaitTime(),
                         simpleStoreDto.getDeliveryTip(),
                         0F,
+                        simpleStoreDto.getReviewCount(),
                         simpleStoreDto.getMinPrice(),
                         medium
                 );
@@ -155,11 +158,17 @@ public class StoreService {
         }
         List<Menu> menus = menuRepository.findByStoreAndDeleted(findStore.get(), false);
         for (Menu menu : menus) {
+            List<MenuMedia> menuMedium = menuMediaRepository.findByMenu(menu);
+            List<String> medium = new ArrayList<>();
+            for (MenuMedia menuMedia : menuMedium) {
+                medium.add(menuMedia.getFileName());
+            }
             ReadMenuDto readMenuDto = new ReadMenuDto();
             readMenuDto.setId(menu.getId());
             readMenuDto.setName(menu.getName());
             readMenuDto.setExpression(menu.getExpression());
             readMenuDto.setPrice(menu.getPrice());
+            readMenuDto.setMedium(medium);
 
             List<MenuOptionGroup> menuOptionGroups = menuOptionGroupRepository.findByMenuAndDeleted(menu, false);
             List<ReadMenuOptionGroup> readMenuOptionGroups = new ArrayList<>();

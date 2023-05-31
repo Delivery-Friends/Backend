@@ -17,10 +17,11 @@ public class ReadStoresDto {
     Long packageWaitTime;
     Long deliveryTip;
     Float reviewScore;
+    Long reviewCount;
     Long minPrice;
     List<FilenameDto> fileNames;
 
-    public ReadStoresDto(Long id, String name, Long deliveryWaitTime, Boolean packageAvailable, Long packageWaitTime, Long deliveryTip, Float reviewScore, Long minPrice, List<FilenameDto> fileNames) {
+    public ReadStoresDto(Long id, String name, Long deliveryWaitTime, Boolean packageAvailable, Long packageWaitTime, Long deliveryTip, Float reviewScore, Long reviewCount, Long minPrice, List<FilenameDto> fileNames) {
         this.id = id;
         this.name = name;
         this.deliveryWaitTime = deliveryWaitTime;
@@ -28,6 +29,7 @@ public class ReadStoresDto {
         this.packageWaitTime = packageWaitTime;
         this.deliveryTip = deliveryTip;
         this.reviewScore = reviewScore;
+        this.reviewCount = reviewCount;
         this.minPrice = minPrice;
         this.fileNames = fileNames;
     }

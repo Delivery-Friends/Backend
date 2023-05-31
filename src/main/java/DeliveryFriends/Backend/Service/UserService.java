@@ -2,10 +2,15 @@ package DeliveryFriends.Backend.Service;
 
 import DeliveryFriends.Backend.Controller.BaseException;
 import DeliveryFriends.Backend.Domain.*;
+import DeliveryFriends.Backend.Domain.Dto.FilenameDto;
+import DeliveryFriends.Backend.Domain.Dto.Store.ReadStoresDto;
+import DeliveryFriends.Backend.Domain.Dto.Store.SimpleStoreDto;
+import DeliveryFriends.Backend.Domain.Dto.Store.StoreCondDto;
 import DeliveryFriends.Backend.Domain.Dto.User.*;
 import DeliveryFriends.Backend.Domain.Dto.TokensDto;
 import DeliveryFriends.Backend.Repository.*;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -31,6 +36,8 @@ public class UserService {
     private final ChoiceOptionRepository choiceOptionRepository;
     private final ChoiceMenuRepository choiceMenuRepository;
     private final CartRepository cartRepository;
+    private final LikeStoreRepository likeStoreRepository;
+    private final StoreMediaRepository storeMediaRepository;
 
     public Long getInfo() {
         Long userId = jwtService.getInfo();
@@ -39,7 +46,7 @@ public class UserService {
     }
 
     public TokensDto createUser(CreateUserReq req) throws BaseException {
-        if (StringUtils.hasText(req.getKakaoId()) || StringUtils.hasText(req.getNickname()) || StringUtils.hasText(req.getName())) {
+        if (!StringUtils.hasText(req.getKakaoId()) || !StringUtils.hasText(req.getNickname()) || !StringUtils.hasText(req.getName())) {
             throw new BaseException(Bad_Request);
         }
         try {
@@ -183,6 +190,102 @@ public class UserService {
 
         List<CartRes> result = getCart(userId);
 
+        return result;
+    }
+
+    public void likeStore(Long storeId, Long userId) {
+        Optional<User> findUser = userRepository.findById(userId);
+        if (!findUser.isPresent()) {
+            throw new BaseException(CANNOT_FOUND_USER);
+        }
+        User user = findUser.get();
+
+        Optional<Store> findStore = storeRepository.findById(storeId);
+        if (!findStore.isPresent()) {
+            throw new BaseException(CANNOT_FOUND_STORE);
+        }
+        Store store = findStore.get();
+
+        Optional<LikeStore> findLikeStore = likeStoreRepository.findByStoreAndUser(store, user);
+        if (findLikeStore.isPresent()) {
+            throw new BaseException(ALREADY_LIKE);
+        } else {
+            LikeStore likeStore = new LikeStore(store, user);
+            likeStoreRepository.save(likeStore);
+            store.setLikeCount(store.getLikeCount() + 1);
+        }
+    }
+
+    public void dislikeStore(Long storeId, Long userId) {
+        Optional<User> findUser = userRepository.findById(userId);
+        if (!findUser.isPresent()) {
+            throw new BaseException(CANNOT_FOUND_USER);
+        }
+        User user = findUser.get();
+
+        Optional<Store> findStore = storeRepository.findById(storeId);
+        if (!findStore.isPresent()) {
+            throw new BaseException(CANNOT_FOUND_STORE);
+        }
+        Store store = findStore.get();
+
+        Optional<LikeStore> findLikeStore = likeStoreRepository.findByStoreAndUser(store, user);
+        if (!findLikeStore.isPresent()) {
+            throw new BaseException(ALREADY_DISLIKE);
+        } else {
+            LikeStore likeStore = new LikeStore(store, user);
+            likeStoreRepository.delete(likeStore);
+            store.setLikeCount(store.getLikeCount() - 1);
+        }
+    }
+
+    public List<ReadStoresDto> getLikeStoreList(Pageable pageable, Long userId) {
+        Optional<User> findUser = userRepository.findById(userId);
+        if (!findUser.isPresent()) {
+            throw new BaseException(CANNOT_FOUND_USER);
+        }
+        User user = findUser.get();
+
+        List<LikeStore> likeStores = likeStoreRepository.findByUser(user);
+        List<Long> storeIds = new ArrayList<>();
+        for (LikeStore likeStore : likeStores) {
+            storeIds.add(likeStore.getStore().getId());
+        }
+        List<Store> stores = storeRepository.findByIdIn(pageable, storeIds);
+
+        List<ReadStoresDto> result = new ArrayList<>();
+        for (Store store : stores) {
+            List<FilenameDto> medium = storeMediaRepository.getStoreMedium(store.getId());
+            if (store.getReviewCount() > 0) {
+                ReadStoresDto readStoresDto = new ReadStoresDto(
+                        store.getId(),
+                        store.getName(),
+                        store.getDeliveryWaitTime(),
+                        store.getPackageAvailable(),
+                        store.getPackageWaitTime(),
+                        store.getDeliveryTip(),
+                        (float) (store.getReviewScore() / store.getReviewCount()),
+                        store.getReviewCount(),
+                        store.getMinPrice(),
+                        medium
+                );
+                result.add(readStoresDto);
+            } else {
+                ReadStoresDto readStoresDto = new ReadStoresDto(
+                        store.getId(),
+                        store.getName(),
+                        store.getDeliveryWaitTime(),
+                        store.getPackageAvailable(),
+                        store.getPackageWaitTime(),
+                        store.getDeliveryTip(),
+                        0F,
+                        store.getReviewCount(),
+                        store.getMinPrice(),
+                        medium
+                );
+                result.add(readStoresDto);
+            }
+        }
         return result;
     }
 }

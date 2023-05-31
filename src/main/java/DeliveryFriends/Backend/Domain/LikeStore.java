@@ -1,6 +1,5 @@
 package DeliveryFriends.Backend.Domain;
 
-import lombok.Data;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -9,7 +8,7 @@ import javax.persistence.*;
 @Entity
 @Getter
 @NoArgsConstructor
-public class likeStore extends BaseEntity {
+public class LikeStore extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -22,4 +21,9 @@ public class likeStore extends BaseEntity {
     @ManyToOne
     @JoinColumn(name = "user_id")
     User user;
+
+    public LikeStore(Store store, User user) {
+        this.store = store;
+        this.user = user;
+    }
 }

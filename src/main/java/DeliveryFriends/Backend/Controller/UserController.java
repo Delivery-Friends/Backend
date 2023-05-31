@@ -1,6 +1,7 @@
 package DeliveryFriends.Backend.Controller;
 
 import DeliveryFriends.Backend.Domain.Dto.Kakao.KakaoCode;
+import DeliveryFriends.Backend.Domain.Dto.Store.ReadStoresDto;
 import DeliveryFriends.Backend.Domain.Dto.TokensDto;
 import DeliveryFriends.Backend.Domain.Dto.User.CartRes;
 import DeliveryFriends.Backend.Domain.Dto.User.CreateUserReq;
@@ -9,6 +10,9 @@ import DeliveryFriends.Backend.Service.JWTService;
 import DeliveryFriends.Backend.Service.OauthService;
 import DeliveryFriends.Backend.Service.UserService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -81,5 +85,25 @@ public class UserController {
     @PostMapping("/user/cart/delete")
     public List<CartRes> getCart(Long storeId) throws BaseException {
         return userService.deleteCart(jwtService.getInfo(), storeId);
+    }
+
+    @PostMapping("/store/like/{storeId}")
+    public void storeLike(@PathVariable Long storeId) {
+        Long userId = userService.getInfo();
+        userService.likeStore(storeId, userId);
+    }
+
+    @PostMapping("/store/dislike/{storeId}")
+    public void storeDislike(@PathVariable Long storeId) {
+        Long userId = userService.getInfo();
+        userService.dislikeStore(storeId, userId);
+    }
+
+    @GetMapping("/store/user/like")
+    public List<ReadStoresDto> storeDislike(
+            @PageableDefault(size = 10, sort = "reviewCount", direction = Sort.Direction.DESC) Pageable pageable
+    ) {
+        Long userId = userService.getInfo();
+        return userService.getLikeStoreList(pageable, userId);
     }
 }

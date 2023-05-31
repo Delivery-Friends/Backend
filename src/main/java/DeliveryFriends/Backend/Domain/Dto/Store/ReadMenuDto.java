@@ -13,6 +13,7 @@ public class ReadMenuDto {
     String name;
     Long price;
     String expression;
+    List<String> medium;
 
     List<ReadMenuOptionGroup> readMenuOptionGroupList;
 

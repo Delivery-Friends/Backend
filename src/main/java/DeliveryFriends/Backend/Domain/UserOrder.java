@@ -21,13 +21,19 @@ public class UserOrder extends BaseEntity {
     @ManyToOne
     User user;
 
-    @JoinColumn(name = "pay_id")
-    @ManyToOne
-    Pay pay;
+    String paymentKey;
 
     @JoinColumn(name = "store_id")
     @ManyToOne
     Store store;
 
     String order_info;
+
+    public UserOrder(String result, User user, String paymentKey, Store store, String order_info) {
+        this.result = result;
+        this.user = user;
+        this.paymentKey = paymentKey;
+        this.store = store;
+        this.order_info = order_info;
+    }
 }

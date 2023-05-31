@@ -5,6 +5,6 @@ import lombok.NoArgsConstructor;
 
 @Data
 @NoArgsConstructor
-public class JoinPostReq {
-    Long teamId;
+public class CartIdDto {
+    Long cartId;
 }

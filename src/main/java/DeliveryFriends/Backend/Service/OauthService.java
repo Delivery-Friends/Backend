@@ -4,6 +4,7 @@ import DeliveryFriends.Backend.Controller.BaseException;
 import DeliveryFriends.Backend.Controller.ToJoinException;
 import DeliveryFriends.Backend.Controller.feign.KakaoKapiFeign;
 import DeliveryFriends.Backend.Controller.feign.KakaoKauthFeign;
+import DeliveryFriends.Backend.Controller.feign.TossApiFeign;
 import DeliveryFriends.Backend.Domain.Dto.Kakao.KakaoInfoRes;
 import DeliveryFriends.Backend.Domain.Dto.Kakao.KakaoToken;
 import DeliveryFriends.Backend.Domain.Dto.TokensDto;

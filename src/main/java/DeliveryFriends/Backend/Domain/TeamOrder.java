@@ -3,11 +3,13 @@ package DeliveryFriends.Backend.Domain;
 import lombok.Data;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 import javax.persistence.*;
 
 @Entity
 @Getter
+@Setter
 @NoArgsConstructor
 public class TeamOrder extends BaseEntity {
 
@@ -26,10 +28,14 @@ public class TeamOrder extends BaseEntity {
     @ManyToOne
     Cart cart;
 
-    public TeamOrder(Boolean isLeader, String orderStatus, Team team, Cart cart) {
+    @OneToOne
+    User user;
+
+    public TeamOrder(Boolean isLeader, String orderStatus, Team team, User user, Cart cart) {
         this.isLeader = isLeader;
         this.orderStatus = orderStatus;
         this.team = team;
+        this.user = user;
         this.cart = cart;
     }
 }

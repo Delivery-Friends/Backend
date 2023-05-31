@@ -7,6 +7,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 
 @FeignClient(name = "kauth", url="https://kauth.kakao.com")
 public interface KakaoKauthFeign {
+
     @GetMapping("/oauth/token")
     KakaoToken getAccessToken(
             @RequestParam("grant_type") String grant_type,
