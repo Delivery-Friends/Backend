@@ -1,13 +1,14 @@
 package DeliveryFriends.Backend.Domain;
 
-import lombok.Data;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 import javax.persistence.*;
 
 @Entity
 @Getter
+@Setter
 @NoArgsConstructor
 public class UserOrder extends BaseEntity {
 
@@ -27,13 +28,18 @@ public class UserOrder extends BaseEntity {
     @ManyToOne
     Store store;
 
-    String order_info;
+    String orderInfo;
 
-    public UserOrder(String result, User user, String paymentKey, Store store, String order_info) {
+    @JoinColumn(name = "team_id")
+    @ManyToOne
+    Team team;
+
+    public UserOrder(String result, User user, String paymentKey, Store store, String orderInfo, Team team) {
         this.result = result;
         this.user = user;
         this.paymentKey = paymentKey;
         this.store = store;
-        this.order_info = order_info;
+        this.orderInfo = orderInfo;
+        this.team = team;
     }
 }

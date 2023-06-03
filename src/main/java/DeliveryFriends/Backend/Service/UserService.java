@@ -1,5 +1,6 @@
 package DeliveryFriends.Backend.Service;
 
+import DeliveryFriends.Backend.Config.Security.TokenProvider;
 import DeliveryFriends.Backend.Controller.BaseException;
 import DeliveryFriends.Backend.Domain.*;
 import DeliveryFriends.Backend.Domain.Dto.FilenameDto;
@@ -11,23 +12,28 @@ import DeliveryFriends.Backend.Domain.Dto.TokensDto;
 import DeliveryFriends.Backend.Repository.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
+import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
 import static DeliveryFriends.Backend.Controller.BaseResponseStatus.*;
+import static DeliveryFriends.Backend.Domain.QUserOrder.userOrder;
 
 @Service
 @Transactional
 @RequiredArgsConstructor
 public class UserService {
     private final UserRepository userRepository;
-    private final BCryptPasswordEncoder passwordEncoder;
     private final JWTService jwtService;
     private final StoreRepository storeRepository;
     private final MenuRepository menuRepository;
@@ -38,38 +44,7 @@ public class UserService {
     private final CartRepository cartRepository;
     private final LikeStoreRepository likeStoreRepository;
     private final StoreMediaRepository storeMediaRepository;
-
-    public Long getInfo() {
-        Long userId = jwtService.getInfo();
-
-        return userId;
-    }
-
-    public TokensDto createUser(CreateUserReq req) throws BaseException {
-        if (!StringUtils.hasText(req.getKakaoId()) || !StringUtils.hasText(req.getNickname()) || !StringUtils.hasText(req.getName())) {
-            throw new BaseException(Bad_Request);
-        }
-        try {
-            Optional<User> findUser = userRepository.findByKakaoId(req.getKakaoId());
-            if(findUser.isPresent()) {
-                throw new BaseException(EXISTS_KAKAOID);
-            }
-
-            User user = userRepository.save(
-                    User.builder()
-                            .name(req.getName())
-                            .nickname(req.getNickname())
-                            .kakaoId(req.getKakaoId())
-                            .point(0L)
-                            .imgSrc("")
-                            .build());
-
-            return jwtService.createJwt(user.getId());
-
-        } catch (BaseException e) {
-            throw e;
-        }
-    }
+    private final UserOrderRepository userOrderRepository;
 
     public void goCart(CartReq req, Long userId) {
         Optional<User> findUser = userRepository.findById(userId);
@@ -287,5 +262,38 @@ public class UserService {
             }
         }
         return result;
+    }
+
+    public List<UserOrdersDto> getUserOrderList(Long userId) {
+        Optional<User> findUser = userRepository.findById(userId);
+        List<UserOrder> userOrders = userOrderRepository.findByUser(findUser.get());
+        List<UserOrdersDto> result = new ArrayList<>();
+        for (UserOrder userOrder : userOrders) {
+            String orderResult = userOrder.getResult();
+            if (orderResult.equals("결제 완료")) {
+                if (userOrder.getTeam().getGroupEndTime().isBefore(LocalDateTime.now())) {
+                    orderResult = "팀 주문 취소";
+                }
+            }
+            UserOrdersDto userOrdersDto = new UserOrdersDto(orderResult, userOrder.getStore().getName(), userOrder.getOrderInfo());
+            result.add(userOrdersDto);
+        }
+        return result;
+    }
+
+    public UserOrderDto getUserOrder(Long userOrderId) {
+        Optional<UserOrder> findUserOrder = userOrderRepository.findById(userOrderId);
+        if (!findUserOrder.isPresent()) {
+            throw new BaseException(CANNOT_FOUND_USER_ORDER);
+        }
+        UserOrder userOrder = findUserOrder.get();
+
+        String orderResult = userOrder.getResult();
+        if (orderResult.equals("결제 완료")) {
+            if (userOrder.getTeam().getGroupEndTime().isBefore(LocalDateTime.now())) {
+                orderResult = "팀 주문 취소";
+            }
+        }
+        return new UserOrderDto(orderResult, userOrder.getPaymentKey(), userOrder.getStore().getName(), userOrder.getOrderInfo());
     }
 }

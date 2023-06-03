@@ -4,7 +4,6 @@ import DeliveryFriends.Backend.Controller.BaseException;
 import DeliveryFriends.Backend.Controller.feign.TossApiFeign;
 import DeliveryFriends.Backend.Domain.*;
 import DeliveryFriends.Backend.Domain.Dto.FilenameDto;
-import DeliveryFriends.Backend.Domain.Dto.Kakao.TossRes;
 import DeliveryFriends.Backend.Domain.Dto.Post.*;
 import DeliveryFriends.Backend.Repository.*;
 import lombok.RequiredArgsConstructor;
@@ -28,6 +27,7 @@ public class PostService {
     private final TeamRepository teamRepository;
     private final TeamOrderRepository teamOrderRepository;
     private final StoreMediaRepository storeMediaRepository;
+    private final UserOrderRepository userOrderRepository;
 
     private final TossApiFeign tossApiFeign;
 
@@ -129,7 +129,6 @@ public class PostService {
     public List<TeamRes> getTeamList(String lessLatitude, String greaterLatitude, String lessLongitude, String greaterLongitude) {
         List<Team> findTeams = teamRepository.findByGroupEndTimeAfterAndLatitudeGreaterThanEqualAndLatitudeLessThanEqualAndLongitudeGreaterThanEqualAndLongitudeLessThanEqual(LocalDateTime.now(), lessLatitude, greaterLatitude, lessLongitude, greaterLongitude);
 
-        System.out.println("@@" + findTeams.size());
         List<TeamRes> result = new ArrayList<>();
         for (Team team : findTeams) {
 
@@ -225,7 +224,9 @@ public class PostService {
         }
         TeamOrder teamOrder = findTeamOrder.get();
         teamOrder.setOrderStatus("pay");
-        UserOrder userOrder = new UserOrder();
+        UserOrder userOrder = new UserOrder("결제 완료", user, paymentKey, team.getStore(), "개인 결제 완료", team);
+        userOrderRepository.save(userOrder);
+
         List<User> members = userRepository.findByTeam(team);
         Boolean check = true;
         for (User member : members) {
@@ -246,12 +247,19 @@ public class PostService {
                 if (!findMemberTeamOrder.isPresent()) {
                     throw new BaseException(CANNOT_FOUND_TEAM_ORDER);
                 }
-                TeamOrder memberOrder = findMemberTeamOrder.get();
-                memberOrder.setOrderStatus("order");
+                TeamOrder memberTeamOrder = findMemberTeamOrder.get();
+                memberTeamOrder.setOrderStatus("order");
+                Optional<UserOrder> findUserOrder = userOrderRepository.findByUserAndTeam(member, team);
+                if (!findUserOrder.isPresent()) {
+                    throw new BaseException(CANNOT_FOUND_USER_ORDER);
+                }
+                UserOrder memberUserOrder = findUserOrder.get();
+                memberUserOrder.setOrderInfo("팀 결제 완료");
+                memberUserOrder.setResult("배달 진행");
+
             }
-
-
         }
+        return "성공";
     }
 
     public List<TeamOrderStatusDto> getTeamOrderStatus(Long userId){
@@ -268,7 +276,7 @@ public class PostService {
             if (!findTeamOrder.isPresent()) {
                 throw new BaseException(CANNOT_FOUND_TEAM_ORDER);
             }
-            result.add(new TeamOrderStatusDto(member.getNickname(), findTeamOrder.get().getOrderStatus());
+            result.add(new TeamOrderStatusDto(member.getNickname(), findTeamOrder.get().getOrderStatus()));
         }
         return result;
     }

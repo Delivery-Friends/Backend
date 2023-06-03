@@ -26,7 +26,8 @@ public enum BaseResponseStatus {
     CANNOT_FOUND_USER(20004, "옵션을 찾을 수 없습니다."),
     CANNOT_FOUND_CART(20005, "카트를 찾을 수 없습니다."),
     CANNOT_FOUND_TEAM(20006, "팀을 찾을 수 없습니다."),
-    CANNOT_FOUND_TEAM_ORDER(20006, "주문 팀을 찾을 수 없습니다."),
+    CANNOT_FOUND_TEAM_ORDER(20007, "팀의 주문을 찾을 수 없습니다."),
+    CANNOT_FOUND_USER_ORDER(20008, "유저의 주문을 찾을 수 없습니다."),
 
     ALREADY_WRITED_REVIEW(30000, "리뷰가 이미 작성된 주문입니다."),
     NOT_MATCH_STORE(30001, "카트가 가게와 매칭되지 않습니다."),
