@@ -10,5 +10,8 @@ import java.util.List;
 public class CartRes {
     Long cartId;
     Long storeId;
+    String storeName;
+    List<String> medium;
+    Long deliveryTip;
     List<CartMenuRes> menus;
 }

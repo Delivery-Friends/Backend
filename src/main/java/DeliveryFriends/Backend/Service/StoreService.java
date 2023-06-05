@@ -35,19 +35,37 @@ public class StoreService {
     private final ReviewRepository reviewRepository;
     private final ReviewMediaRepository reviewMediaRepository;
     private final MenuMediaRepository menuMediaRepository;
+    private final LikeStoreRepository likeStoreRepository;
 
     public Long addStore(CreateStoreDto createStoreDto) {
         Store store = new Store(createStoreDto, 0L, 0L, 0L, 0L);
         return storeRepository.save(store).getId();
     }
 
-    public StoreInfoDto getStoreInfo(Long storeId) {
+    public StoreInfoDto getStoreInfo(Long myId, Long storeId) {
         Optional<Store> findStore = storeRepository.findById(storeId);
         if (!findStore.isPresent()) {
             throw new BaseException(CANNOT_FOUND_STORE);
         }
         Store store = findStore.get();
-        return new StoreInfoDto(store);
+        List<StoreMedia> medium = storeMediaRepository.findByStore(store);
+        List<String> arr = new ArrayList<>();
+        for (StoreMedia storeMedia : medium) {
+            arr.add(storeMedia.getFileName());
+        }
+        Boolean isLike = false;
+        if (myId != null) {
+            System.out.println(myId);
+            Optional<User> findMe = userRepository.findById(myId);
+            if (!findMe.isPresent()) {
+                throw new BaseException(CANNOT_FOUND_USER);
+            }
+            User me = findMe.get();
+            Optional<LikeStore> likeStore = likeStoreRepository.findByStoreAndUser(store, me);
+            isLike = likeStore.isPresent();
+            System.out.println(isLike);
+        }
+        return new StoreInfoDto(store, (float) (store.getReviewScore()) / (float) (store.getReviewCount()), arr, isLike);
     }
 
     public List<ReadStoresDto> getStoreList(Pageable pageable, StoreCondDto cond) {
@@ -68,7 +86,7 @@ public class StoreService {
                         simpleStoreDto.getPackageAvailable(),
                         simpleStoreDto.getPackageWaitTime(),
                         simpleStoreDto.getDeliveryTip(),
-                        (float) (simpleStoreDto.getReviewScore() / simpleStoreDto.getReviewCount()),
+                        ((float)simpleStoreDto.getReviewScore() / (float)simpleStoreDto.getReviewCount()),
                         simpleStoreDto.getReviewCount(),
                         simpleStoreDto.getMinPrice(),
                         medium
@@ -198,8 +216,8 @@ public class StoreService {
         return result;
     }
 
-    public List<ReviewRes> addReview(ReviewReq req) throws BaseException {
-        Optional<User> findUser = userRepository.findById(req.getUserId());
+    public List<ReviewRes> addReview(Long userId, ReviewReq req) throws BaseException {
+        Optional<User> findUser = userRepository.findById(userId);
         if (!findUser.isPresent()) {
             throw new BaseException(CANNOT_FOUND_USER);
         }

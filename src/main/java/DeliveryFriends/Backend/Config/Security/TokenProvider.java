@@ -33,6 +33,7 @@ import static DeliveryFriends.Backend.Controller.BaseResponseStatus.*;
 
 @Slf4j
 @Component
+@Transactional
 public class TokenProvider implements InitializingBean {
 
     private static final String AUTHORITIES_KEY = "auth";
@@ -62,7 +63,6 @@ public class TokenProvider implements InitializingBean {
     }
 
     // Authentication 객체의 권한 정보를 이용해서 토큰을 생성
-    @Transactional
     public TokensDto createToken(Authentication authentication){
         // authorities 설정
         String authorities = authentication.getAuthorities().stream()
@@ -126,7 +126,7 @@ public class TokenProvider implements InitializingBean {
             return true;
         }
         catch (io.jsonwebtoken.security.SecurityException | MalformedJwtException e) {
-            log.info("잘못된 JWT 토큰 서명입니다.");
+            log.info("변조된 JWT 토큰입니다.");
         }
         catch (ExpiredJwtException e) {
             log.info("만료된 JWT 토큰입니다.");
@@ -143,7 +143,6 @@ public class TokenProvider implements InitializingBean {
 
     public TokensDto doRefresh() {
         try {
-            String accessToken = getAccessToken();
             String refreshToken = getRefreshToken();
 
             Jwts.parserBuilder()
@@ -151,29 +150,36 @@ public class TokenProvider implements InitializingBean {
                     .build()
                     .parseClaimsJws(refreshToken);
 
-            Authentication authentication = getAuthentication(accessToken);
+            Authentication authentication = getAuthentication(refreshToken);
             Optional<DeliveryFriends.Backend.Domain.User> findUser = userRepository.findById(Long.valueOf(authentication.getName()));
             if (!findUser.isPresent()) {
+                System.out.println("에러 1");
                 throw new BaseException(INVALID_JWT);
             }
             if (!findUser.get().getRefreshToken().equals(refreshToken)) {
+                System.out.println("에러 2");
                 throw new BaseException(INVALID_JWT);
             }
 
             TokensDto tokensDto = createToken(authentication);
+            findUser.get().setRefreshToken(tokensDto.getRefreshToken());
 
             return tokensDto;
         }
         catch (io.jsonwebtoken.security.SecurityException | MalformedJwtException e) {
+            System.out.println("에러 3");
             throw new BaseException(INVALID_JWT);
         }
         catch (ExpiredJwtException e) {
+            System.out.println("에러 4");
             throw new BaseException(EXPIRED_JWT);
         }
         catch (UnsupportedJwtException e) {
+            System.out.println("에러 5");
             throw new BaseException(INVALID_JWT);
         }
         catch (IllegalArgumentException e) {
+            System.out.println("에러 6");
             throw new BaseException(INVALID_JWT);
         }
     }

@@ -5,9 +5,15 @@ import DeliveryFriends.Backend.Controller.feign.TossApiFeign;
 import DeliveryFriends.Backend.Domain.*;
 import DeliveryFriends.Backend.Domain.Dto.FilenameDto;
 import DeliveryFriends.Backend.Domain.Dto.Post.*;
+import DeliveryFriends.Backend.Domain.Dto.Store.MenuInfoAndPriceDto;
+import DeliveryFriends.Backend.Domain.Dto.User.CartMenuRes;
+import DeliveryFriends.Backend.Domain.Dto.User.CartOptionRes;
+import DeliveryFriends.Backend.Domain.Dto.User.CartRes;
 import DeliveryFriends.Backend.Repository.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -28,38 +34,57 @@ public class PostService {
     private final TeamOrderRepository teamOrderRepository;
     private final StoreMediaRepository storeMediaRepository;
     private final UserOrderRepository userOrderRepository;
+    private final ChoiceMenuRepository choiceMenuRepository;
+    private final ChoiceOptionRepository choiceOptionRepository;
 
     private final TossApiFeign tossApiFeign;
 
     @Value("${TOSS_API_KEY}")
     private String tossKey;
 
-    // join -> wait -> pay -> order -> delivery
+    // join	->	wait	->	pay	->	order	->	delivery	->	complete
+    // 가입	->	결제진행 -> 	결제완료	-> 	주문진행	->	배달시작	->	완료
+
     // 커뮤니티 생성
-    public void makePost(CreatePostReq createPostReq, Long userId) {
+    public void makeTeam(CreatePostReq createPostReq, Long userId) {
         Optional<User> findUser = userRepository.findById(userId);
         if (!findUser.isPresent()) {
             throw new BaseException(CANNOT_FOUND_USER);
         }
-        Optional<Cart> findCart = cartRepository.findById(createPostReq.getCartId());
-        if (!findCart.isPresent()) {
-            throw new BaseException(CANNOT_FOUND_CART);
+        User user = findUser.get();
+        if (user.getTeam() != null) {
+            Team beforeTeam = user.getTeam();
+            TeamOrder beforeTeamOrder = teamOrderRepository.findByTeamAndUser(beforeTeam, user).get();
+            if (beforeTeamOrder.getOrderStatus().equals("join") && beforeTeam.getGroupEndTime().isBefore(LocalDateTime.now())) {
+                // 가입한 팀 존재
+                throw new BaseException(ALREADY_JOIN_TEAM);
+            } else if (beforeTeamOrder.getOrderStatus().equals("wait") || beforeTeamOrder.getOrderStatus().equals("pay") || beforeTeamOrder.getOrderStatus().equals("order") || beforeTeamOrder.getOrderStatus().equals("delivery")) {
+                // 진행 중인 팀
+                throw new BaseException(ALREADY_PROGRESS_TEAM);
+            }
         }
+
         Optional<Store> findStore = storeRepository.findById(createPostReq.getStoreId());
         if (!findStore.isPresent()) {
             throw new BaseException(CANNOT_FOUND_STORE);
         }
 
-        Team team = new Team(createPostReq.getEndTime(),
-                findStore.get(), createPostReq.getMaxMember(),
+        Team team = new Team(
+                createPostReq.getEndTime(),
+                findStore.get(),
+                user.getName(),
+                user.getImgSrc(),
+                user.getId(),
+                createPostReq.getMaxMember(),
                 createPostReq.getBasicAddress(),
                 createPostReq.getDetailedAddress(),
                 createPostReq.getLatitude(),
-                createPostReq.getLogitude()
+                createPostReq.getLogitude(),
+                null
         );
 
-        TeamOrder teamOrder = new TeamOrder(true, "wait", team, findUser.get(), findCart.get());
-        findUser.get().setTeam(team);
+        TeamOrder teamOrder = new TeamOrder(true, "join", team, user, null);
+        user.setTeam(team);
 
         teamRepository.save(team);
         teamOrderRepository.save(teamOrder);
@@ -77,6 +102,18 @@ public class PostService {
         }
         Team team = findTeam.get();
         User user = findUser.get();
+
+        if (user.getTeam() != null) {
+            Team beforeTeam = user.getTeam();
+            TeamOrder beforeTeamOrder = teamOrderRepository.findByTeamAndUser(beforeTeam, user).get();
+            if (beforeTeamOrder.getOrderStatus().equals("join") && beforeTeam.getGroupEndTime().isBefore(LocalDateTime.now())) {
+                // 가입한 팀 존재
+                throw new BaseException(ALREADY_JOIN_TEAM);
+            } else if (beforeTeamOrder.getOrderStatus().equals("wait") || beforeTeamOrder.getOrderStatus().equals("pay") || beforeTeamOrder.getOrderStatus().equals("order") || beforeTeamOrder.getOrderStatus().equals("delivery")) {
+                // 진행 중인 팀
+                throw new BaseException(ALREADY_PROGRESS_TEAM);
+            }
+        }
 
         TeamOrder teamOrder = new TeamOrder(true, "join", team, user, null);
         teamOrderRepository.save(teamOrder);
@@ -100,7 +137,7 @@ public class PostService {
             return new MyTeamRes(
                     team.getStore().getId(),
                     team.getStore().getName(),
-                    (float) ((team.getStore().getReviewScore()) / (team.getStore().getReviewCount())),
+                    (float) (team.getStore().getReviewScore()) / (float) (team.getStore().getReviewCount()),
                     team.getStore().getReviewCount(),
                     team.getBasicAddress(),
                     team.getDetailedAddress(),
@@ -126,10 +163,10 @@ public class PostService {
     }
 
     // 팀리스트 조회
-    public List<TeamRes> getTeamList(String lessLatitude, String greaterLatitude, String lessLongitude, String greaterLongitude) {
-        List<Team> findTeams = teamRepository.findByGroupEndTimeAfterAndLatitudeGreaterThanEqualAndLatitudeLessThanEqualAndLongitudeGreaterThanEqualAndLongitudeLessThanEqual(LocalDateTime.now(), lessLatitude, greaterLatitude, lessLongitude, greaterLongitude);
+    public List<TeamListRes> getTeamList(Pageable pageable) {
+        Page<Team> findTeams = teamRepository.findAll(pageable);
 
-        List<TeamRes> result = new ArrayList<>();
+        List<TeamListRes> result = new ArrayList<>();
         for (Team team : findTeams) {
 
             List<FilenameDto> storeMedium = storeMediaRepository.getStoreMedium(team.getStore().getId());
@@ -137,45 +174,165 @@ public class PostService {
             for (FilenameDto filenameDto : storeMedium) {
                 medium.add(filenameDto.getFilename());
             }
+            Long nowMember = userRepository.countByTeam(team);
             if (team.getStore().getReviewCount() != 0) {
-                TeamRes teamRes = new TeamRes(
+                TeamListRes teamListRes = new TeamListRes(
                         team.getGroupEndTime(),
+                        team.getId(),
                         team.getStore().getId(),
                         team.getStore().getName(),
+                        team.getLeaderName(),
+                        team.getStore().getCategory(),
                         medium,
-                        (float) ((team.getStore().getReviewScore()) / (team.getStore().getReviewCount())),
+                        (float) (team.getStore().getReviewScore()) / (float) (team.getStore().getReviewCount()),
                         team.getStore().getReviewCount(),
-                        team.getStore().getDeliveryWaitTime(),
-                        team.getStore().getDeliveryTip(),
-                        team.getStore().getMinPrice(),
                         team.getMaxMember(),
+                        nowMember,
                         team.getBasicAddress(),
-                        team.getDetailedAddress(),
                         team.getLatitude(),
                         team.getLongitude()
                 );
-                result.add(teamRes);
+                result.add(teamListRes);
             } else {
-                TeamRes teamRes = new TeamRes(
+                TeamListRes teamListRes = new TeamListRes(
                         team.getGroupEndTime(),
+                        team.getId(),
                         team.getStore().getId(),
                         team.getStore().getName(),
+                        team.getLeaderName(),
+                        team.getStore().getCategory(),
                         medium,
                         0F,
                         team.getStore().getReviewCount(),
-                        team.getStore().getDeliveryWaitTime(),
-                        team.getStore().getDeliveryTip(),
-                        team.getStore().getMinPrice(),
                         team.getMaxMember(),
+                        nowMember,
                         team.getBasicAddress(),
-                        team.getDetailedAddress(),
                         team.getLatitude(),
                         team.getLongitude()
                 );
-                result.add(teamRes);
+                result.add(teamListRes);
             }
         }
         return result;
+    }
+
+    // 팀리스트 조회
+    public List<TeamListRes> getTeamListForMap(String lessLatitude, String greaterLatitude, String lessLongitude, String greaterLongitude) {
+        List<Team> findTeams = teamRepository.findByGroupEndTimeAfterAndLatitudeGreaterThanEqualAndLatitudeLessThanEqualAndLongitudeGreaterThanEqualAndLongitudeLessThanEqual(LocalDateTime.now(), lessLatitude, greaterLatitude, lessLongitude, greaterLongitude);
+
+        List<TeamListRes> result = new ArrayList<>();
+        for (Team team : findTeams) {
+
+            List<FilenameDto> storeMedium = storeMediaRepository.getStoreMedium(team.getStore().getId());
+            List<String> medium = new ArrayList<>();
+            for (FilenameDto filenameDto : storeMedium) {
+                medium.add(filenameDto.getFilename());
+            }
+            Long nowMember = userRepository.countByTeam(team);
+            if (team.getStore().getReviewCount() != 0) {
+                TeamListRes teamListRes = new TeamListRes(
+                    team.getGroupEndTime(),
+                    team.getId(),
+                    team.getStore().getId(),
+                    team.getStore().getName(),
+                    team.getLeaderName(),
+                    team.getStore().getCategory(),
+                    medium,
+                    (float) (team.getStore().getReviewScore()) / (float) (team.getStore().getReviewCount()),
+                    team.getStore().getReviewCount(),
+                    team.getMaxMember(),
+                    nowMember,
+                    team.getBasicAddress(),
+                    team.getLatitude(),
+                    team.getLongitude()
+                );
+                result.add(teamListRes);
+            } else {
+                TeamListRes teamListRes = new TeamListRes(
+                    team.getGroupEndTime(),
+                    team.getId(),
+                    team.getStore().getId(),
+                    team.getStore().getName(),
+                    team.getLeaderName(),
+                    team.getStore().getCategory(),
+                    medium,
+                    0F,
+                    team.getStore().getReviewCount(),
+                    team.getMaxMember(),
+                    nowMember,
+                    team.getBasicAddress(),
+                    team.getLatitude(),
+                    team.getLongitude()
+                );
+                result.add(teamListRes);
+            }
+        }
+        return result;
+    }
+
+    public TeamRes getTeam(Long teamId) {
+        Optional<Team> findTeam = teamRepository.findById(teamId);
+        Team team = findTeam.get();
+        List<FilenameDto> storeMedium = storeMediaRepository.getStoreMedium(team.getStore().getId());
+        List<String> medium = new ArrayList<>();
+        for (FilenameDto filenameDto : storeMedium) {
+            medium.add(filenameDto.getFilename());
+        }
+        Long nowMember = userRepository.countByTeam(team);
+
+        if (team.getStore().getReviewCount() != 0) {
+            return new TeamRes(
+                team.getGroupEndTime(),
+                team.getId(),
+                team.getStore().getId(),
+                team.getStore().getName(),
+                team.getLeaderId(),
+                team.getLeaderName(),
+                team.getLeaderImgSrc(),
+                team.getStore().getCategory(),
+                medium,
+                (float) (team.getStore().getReviewScore()) / (float) (team.getStore().getReviewCount()),
+                team.getStore().getReviewCount(),
+                team.getStore().getDeliveryWaitTime(),
+                team.getStore().getDeliveryTip(),
+                team.getStore().getMinPrice(),
+
+                team.getMaxMember(),
+                nowMember,
+
+                team.getBasicAddress(),
+                team.getDetailedAddress(),
+
+                team.getLatitude(),
+                team.getLongitude()
+            );
+        } else {
+            return new TeamRes(
+                    team.getGroupEndTime(),
+                    team.getId(),
+                    team.getStore().getId(),
+                    team.getStore().getName(),
+                    team.getLeaderId(),
+                    team.getLeaderName(),
+                    team.getLeaderImgSrc(),
+                    team.getStore().getCategory(),
+                    medium,
+                    0F,
+                    team.getStore().getReviewCount(),
+                    team.getStore().getDeliveryWaitTime(),
+                    team.getStore().getDeliveryTip(),
+                    team.getStore().getMinPrice(),
+
+                    team.getMaxMember(),
+                    nowMember,
+
+                    team.getBasicAddress(),
+                    team.getDetailedAddress(),
+
+                    team.getLatitude(),
+                    team.getLongitude()
+            );
+        }
     }
 
     // 커뮤니티 카트 설정
@@ -202,6 +359,85 @@ public class PostService {
         findTeamOrder.get().setCart(cart);
     }
 
+    public Long goPay(Long userId) {
+        Optional<User> findUser = userRepository.findById(userId);
+        if (!findUser.isPresent()) {
+            throw new BaseException(CANNOT_FOUND_USER);
+        }
+        User user = findUser.get();
+
+        Team team = user.getTeam();
+        if (!team.getLeaderId().equals(userId)) {
+            throw new BaseException(NOT_LEADER);
+        }
+
+        List<User> members = userRepository.findByTeam(team);
+        for (User member : members) {
+            Optional<TeamOrder> findMemberOrder = teamOrderRepository.findByTeamAndUser(team, member);
+            TeamOrder teamOrder = findMemberOrder.get();
+            if (teamOrder.getCart() == null) {
+                throw new BaseException(CART_NOT_SETTING);
+            }
+            teamOrder.setOrderStatus("wait");
+        }
+
+        System.out.println("@@@00");
+        Long deliveryTip = team.getStore().getDeliveryTip();
+        System.out.println("@@@11" + deliveryTip);
+        int count = members.size();
+        Long divideTip = deliveryTip / count;
+        while (divideTip * count > deliveryTip) {
+            divideTip += 10L;
+        }
+        System.out.println("@@@22" + divideTip);
+        team.setDivideTip(divideTip);
+        return divideTip;
+    }
+
+    // 결제 금액 반환
+    public MenuInfoAndPriceDto getPayInfo(Long userId) {
+        String menuInfo = "";
+        Long price = 0L;
+        Optional<User> findUser = userRepository.findById(userId);
+        if (!findUser.isPresent()) {
+            throw new BaseException(CANNOT_FOUND_USER);
+        }
+        User user = findUser.get();
+        Team team = user.getTeam();
+        Optional<TeamOrder> findTeamOrder = teamOrderRepository.findByTeamAndUser(team, user);
+        if (!findTeamOrder.isPresent()) {
+            throw new BaseException(CANNOT_FOUND_TEAM_ORDER);
+        }
+        TeamOrder teamOrder = findTeamOrder.get();
+        if (teamOrder.getCart() == null) {
+            throw new BaseException(CART_NOT_SETTING);
+        }
+        Long deliveryTip = team.getDivideTip();
+
+        Cart cart = teamOrder.getCart();
+        List<ChoiceMenu> choiceMenus = choiceMenuRepository.findByCart(cart);
+        //가게의 메뉴
+        for (ChoiceMenu choiceMenu : choiceMenus) {
+            menuInfo = menuInfo + choiceMenu.getMenu().getName() + " " + choiceMenu.getCount() + "개";
+            price = price + (choiceMenu.getMenu().getPrice() * choiceMenu.getCount());
+
+            //가게의 옵션
+            List<ChoiceOption> choiceOptions = choiceOptionRepository.findByChoiceMenu(choiceMenu);
+            if(choiceOptions.size() > 1) {
+                menuInfo += "( ";
+            }
+            for (ChoiceOption choiceOption : choiceOptions) {
+                menuInfo = menuInfo + choiceOption.getMenuOption().getName() + " " + choiceOption.getCount() + "개 ";
+                price = price + (choiceOption.getMenuOption().getPrice() * choiceOption.getCount());
+            }
+            if(choiceOptions.size() > 1) {
+                menuInfo += ")";
+            }
+            menuInfo += " ";
+        }
+        return new MenuInfoAndPriceDto(menuInfo, price, deliveryTip);
+    }
+
     // 결제완료
     public String pay(Long userId, String paymentKey) {
         Map<String, String> headerMap = new HashMap<>();
@@ -224,7 +460,8 @@ public class PostService {
         }
         TeamOrder teamOrder = findTeamOrder.get();
         teamOrder.setOrderStatus("pay");
-        UserOrder userOrder = new UserOrder("결제 완료", user, paymentKey, team.getStore(), "개인 결제 완료", team);
+        MenuInfoAndPriceDto payInfo = getPayInfo(userId);
+        UserOrder userOrder = new UserOrder(user, paymentKey, team.getStore(), "개인 결제 완료", team, payInfo.getMenuInfo(), payInfo.getPrice(), payInfo.getDeliveryTip());
         userOrderRepository.save(userOrder);
 
         List<User> members = userRepository.findByTeam(team);
@@ -242,24 +479,31 @@ public class PostService {
         }
         // 모두 결제 완료한 상태 -> order
         if (check) {
-            for (User member : members) {
-                Optional<TeamOrder> findMemberTeamOrder = teamOrderRepository.findByTeamAndUser(team, member);
-                if (!findMemberTeamOrder.isPresent()) {
-                    throw new BaseException(CANNOT_FOUND_TEAM_ORDER);
-                }
-                TeamOrder memberTeamOrder = findMemberTeamOrder.get();
-                memberTeamOrder.setOrderStatus("order");
-                Optional<UserOrder> findUserOrder = userOrderRepository.findByUserAndTeam(member, team);
-                if (!findUserOrder.isPresent()) {
-                    throw new BaseException(CANNOT_FOUND_USER_ORDER);
-                }
-                UserOrder memberUserOrder = findUserOrder.get();
-                memberUserOrder.setOrderInfo("팀 결제 완료");
-                memberUserOrder.setResult("배달 진행");
-
-            }
+            TeamAndMembersDto teamAndMembersDto = new TeamAndMembersDto(team, members);
+            teamPayToOrder(teamAndMembersDto);
+            team.getStore().setOrderCount(team.getStore().getOrderCount() + members.size());
         }
         return "성공";
+    }
+
+    private void teamPayToOrder(TeamAndMembersDto teamAndMembersDto) {
+        List<User> members = teamAndMembersDto.getMembers();
+        Team team = teamAndMembersDto.getTeam();
+
+        for (User member : members) {
+            Optional<TeamOrder> findMemberTeamOrder = teamOrderRepository.findByTeamAndUser(team, member);
+            if (!findMemberTeamOrder.isPresent()) {
+                throw new BaseException(CANNOT_FOUND_TEAM_ORDER);
+            }
+            TeamOrder memberTeamOrder = findMemberTeamOrder.get();
+            memberTeamOrder.setOrderStatus("order");
+            Optional<UserOrder> findUserOrder = userOrderRepository.findByUserAndTeam(member, team);
+            if (!findUserOrder.isPresent()) {
+                throw new BaseException(CANNOT_FOUND_USER_ORDER);
+            }
+            UserOrder memberUserOrder = findUserOrder.get();
+            memberUserOrder.setOrderInfo("팀 결제 완료");
+        }
     }
 
     public List<TeamOrderStatusDto> getTeamOrderStatus(Long userId){
@@ -281,5 +525,37 @@ public class PostService {
         return result;
     }
 
+    public String failOrder(Long userId) {
 
+        Optional<User> findUser = userRepository.findById(userId);
+        if (!findUser.isPresent()) {
+            throw new BaseException(CANNOT_FOUND_USER);
+        }
+        User user = findUser.get();
+        Team team = user.getTeam();
+        if (!team.getLeaderId().equals(userId)) {
+                throw new BaseException(NOT_LEADER);
+        }
+
+        List<User> members = userRepository.findByTeam(team);
+        for (User member : members) {
+            Optional<TeamOrder> findMemberTeamOrder = teamOrderRepository.findByTeamAndUser(team, member);
+            if (!findMemberTeamOrder.isPresent()) {
+                throw new BaseException(CANNOT_FOUND_TEAM_ORDER);
+            }
+            if (findMemberTeamOrder.get().getOrderStatus().equals("wait") || findMemberTeamOrder.get().getOrderStatus().equals("pay")) {
+                TeamOrder memberOrder = findMemberTeamOrder.get();
+                memberOrder.setOrderStatus("join");
+            } else {
+                throw new BaseException(ORDER_PROGRESS_ERROR);
+            }
+            Optional<UserOrder> findUserOrder = userOrderRepository.findByUserAndTeam(member, team);
+            if (!findUserOrder.isPresent()) {
+                throw new BaseException(CANNOT_FOUND_USER_ORDER);
+            }
+            UserOrder userOrder = findUserOrder.get();
+            userOrder.setOrderInfo("결제 취소");
+        }
+        return "성공";
+    }
 }

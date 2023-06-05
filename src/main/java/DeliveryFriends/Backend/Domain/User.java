@@ -25,7 +25,7 @@ public class User extends BaseEntity {
     String role;
 
     @JoinColumn(name = "team_id")
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     Team team;
 
     @Builder

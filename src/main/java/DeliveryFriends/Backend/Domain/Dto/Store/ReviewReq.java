@@ -9,7 +9,6 @@ import java.util.List;
 @NoArgsConstructor
 public class ReviewReq {
     Long orderId;
-    Long userId;
     Long score;
     String content;
     List<String> media;

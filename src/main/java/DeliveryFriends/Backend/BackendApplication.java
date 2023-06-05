@@ -32,13 +32,18 @@ public class BackendApplication {
 		TimeZone.setDefault(TimeZone.getTimeZone("Asia/Seoul"));
 		log.info("start time : " + LocalDateTime.now());
 	}
+
 	@Bean
-	public WebMvcConfigurer prodCorsConfigurer() {
+	public WebMvcConfigurer corsConfigurer() {
 		return new WebMvcConfigurer() {
 			@Override
 			public void addCorsMappings(CorsRegistry registry) {
-//				registry.addMapping("/**").allowedOrigins("https://jaehwan.shop", "https://prod.jaehwan.shop");
-				registry.addMapping("/**").allowedOrigins("http://localhost:3000");
+				registry
+						.addMapping("/**")
+						.allowedMethods("*")
+						.allowedHeaders("*")
+						.allowedOriginPatterns("*")
+						.allowCredentials(true);
 			}
 		};
 	}

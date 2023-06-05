@@ -5,6 +5,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalTime;
+import java.util.List;
 
 @Data
 @NoArgsConstructor
@@ -25,13 +26,17 @@ public class StoreInfoDto {
     Boolean packageAvailable;
     Long packageWaitTime;
 
-    Long reviewScore;
+    Float reviewScore;
     Long reviewCount;
     Long orderCount;
+    Long likeCount;
 
     Long minPrice;
+    List<String> medium;
 
-    public StoreInfoDto(Store store) {
+    Boolean isLike;
+
+    public StoreInfoDto(Store store, Float reviewScore, List<String> medium, Boolean isLike) {
         this.id = store.getId();
         this.name = store.getName();
         this.region1depthName = store.getRegion1depthName();
@@ -46,9 +51,12 @@ public class StoreInfoDto {
         this.deliveryTip = store.getDeliveryTip();
         this.packageAvailable = store.getPackageAvailable();
         this.packageWaitTime = store.getPackageWaitTime();
-        this.reviewScore = store.getReviewScore();
+        this.reviewScore = reviewScore;
         this.reviewCount = store.getReviewCount();
         this.orderCount = store.getOrderCount();
+        this.likeCount = store.getLikeCount();
         this.minPrice = store.getMinPrice();
+        this.medium = medium;
+        this.isLike = isLike;
     }
 }

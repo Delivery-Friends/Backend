@@ -17,15 +17,15 @@ public class ChoiceOption extends BaseEntity {
 
     Long count;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id")
     User user;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "choice_menu_id")
     ChoiceMenu choiceMenu;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "menu_option_id")
     MenuOption menuOption;
 

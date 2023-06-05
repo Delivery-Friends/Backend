@@ -12,4 +12,5 @@ public class CartMenuRes {
     Long price;
     Long count;
     List<CartOptionRes> options;
+    List<String> medium;
 }

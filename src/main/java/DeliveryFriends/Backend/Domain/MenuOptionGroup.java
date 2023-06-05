@@ -19,7 +19,7 @@ public class MenuOptionGroup extends BaseEntity {
     String name;
     Long multiSelect;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "menu_id")
     Menu menu;
 

@@ -3,12 +3,14 @@ package DeliveryFriends.Backend.Domain;
 import lombok.Data;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 import javax.persistence.*;
 import java.time.LocalDateTime;
 
 @Entity
 @Getter
+@Setter
 @NoArgsConstructor
 public class Team extends BaseEntity {
 
@@ -19,8 +21,12 @@ public class Team extends BaseEntity {
     LocalDateTime groupEndTime;
 
     @JoinColumn(name = "store_id")
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     Store store;
+
+    String leaderName;
+    String leaderImgSrc;
+    Long leaderId;
 
     Long maxMember;
 
@@ -30,13 +36,19 @@ public class Team extends BaseEntity {
     String latitude;
     String longitude;
 
-    public Team(LocalDateTime groupEndTime, Store store, Long maxMember, String basicAddress, String detailedAddress, String latitude, String longitude) {
+    Long divideTip;
+
+    public Team(LocalDateTime groupEndTime, Store store, String leaderName, String leaderImgSrc, Long leaderId, Long maxMember, String basicAddress, String detailedAddress, String latitude, String longitude, Long divideTip) {
         this.groupEndTime = groupEndTime;
         this.store = store;
+        this.leaderName = leaderName;
+        this.leaderImgSrc = leaderImgSrc;
+        this.leaderId = leaderId;
         this.maxMember = maxMember;
         this.basicAddress = basicAddress;
         this.detailedAddress = detailedAddress;
         this.latitude = latitude;
         this.longitude = longitude;
+        this.divideTip = divideTip;
     }
 }

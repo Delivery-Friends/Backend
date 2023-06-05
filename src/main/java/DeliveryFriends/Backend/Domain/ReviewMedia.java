@@ -17,7 +17,7 @@ public class ReviewMedia extends BaseEntity {
 
     String fileName;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "review_id")
     Review review;
 

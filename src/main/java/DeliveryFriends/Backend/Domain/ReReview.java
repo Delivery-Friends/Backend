@@ -17,7 +17,7 @@ public class ReReview extends BaseEntity {
 
     String content;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "review_id")
     Review review;
 }

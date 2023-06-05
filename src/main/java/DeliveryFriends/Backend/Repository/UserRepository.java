@@ -10,4 +10,8 @@ import java.util.Optional;
 public interface UserRepository extends JpaRepository<User, Long> {
     Optional<User> findByKakaoId(String kakaoId);
     List<User> findByTeam(Team team);
+
+    Long countByTeam(Team team);
+
+    Optional<User> findByNicknameIgnoreCase(String nickname);
 }

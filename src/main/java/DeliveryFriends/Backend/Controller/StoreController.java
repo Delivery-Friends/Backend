@@ -8,6 +8,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.web.bind.annotation.*;
 
+import java.security.Principal;
 import java.util.List;
 
 @RestController
@@ -36,8 +37,13 @@ public class StoreController {
     }
 
     @GetMapping("/store/{storeId}")
-    public BaseResponse<StoreInfoDto> getStoreInfo(@PathVariable Long storeId) {
-        return new BaseResponse<>(storeService.getStoreInfo(storeId));
+    public BaseResponse<StoreInfoDto> getStoreInfo(Principal principal, @PathVariable Long storeId) {
+        try {
+            Long myId = Long.parseLong(principal.getName());
+            return new BaseResponse<>(storeService.getStoreInfo(myId, storeId));
+        }catch (Exception e) {
+            return new BaseResponse<>(storeService.getStoreInfo(null, storeId));
+        }
     }
 
     @GetMapping("/stores")
@@ -58,14 +64,9 @@ public class StoreController {
         return new BaseResponse<>(storeService.getPopularCategory());
     }
 
-    @PostMapping("/store/review/add")
-    public List<ReviewRes> addReview(@RequestBody ReviewReq addReviewReq) {
-        return storeService.addReview(addReviewReq);
-    }
-
     @GetMapping("/store/review/{storeId}")
-    public List<ReviewRes> getReview(@PathVariable Long storeId) {
-        return storeService.getReview(storeId);
+    public BaseResponse<List<ReviewRes>> getReview(@PathVariable Long storeId) {
+        return new BaseResponse<>(storeService.getReview(storeId));
     }
 
 }

@@ -8,7 +8,6 @@ import java.time.LocalDateTime;
 @Data
 @NoArgsConstructor
 public class CreatePostReq {
-    Long cartId;
     LocalDateTime endTime;
     Long storeId;
     Long maxMember;

@@ -1,15 +1,14 @@
 package DeliveryFriends.Backend.Config.Security;
 
 import java.io.IOException;
-import java.io.PrintWriter;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import DeliveryFriends.Backend.Controller.ExceptionResponse;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.MediaType;
+import org.json.JSONException;
+import org.json.JSONObject;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.web.access.AccessDeniedHandler;
 import org.springframework.stereotype.Component;
@@ -20,19 +19,16 @@ public class JwtAccessDeniedHandler implements AccessDeniedHandler {
     @Override
     public void handle(HttpServletRequest request, HttpServletResponse response,
                        AccessDeniedException accessDeniedException) throws IOException, ServletException {
-        PrintWriter writer = response.getWriter();
-        ExceptionResponse exceptionResponse = new ExceptionResponse("잘못된 접근입니다. Access Denied");
         try{
-            response.setContentType(MediaType.APPLICATION_JSON_VALUE);
-            writer.write(exceptionResponse.getMessage());
-        }catch(NullPointerException e){
-            log.error("응답 메시지 작성 에러", e);
-        }finally{
-            if(writer != null) {
-                writer.flush();
-                writer.close();
-            }
+            response.setContentType("application/json;charset=UTF-8");
+            response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+
+            JSONObject responseJson = new JSONObject();
+            responseJson.put("message", "잘못된 접근입니다.");
+            responseJson.put("statusCode", "10003");
+            response.getWriter().print(responseJson);
+        } catch (JSONException e) {
+            log.error("JSON 생성 에러 {}", e);
         }
-        response.getWriter().write(exceptionResponse.getMessage());
     }
 }

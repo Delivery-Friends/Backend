@@ -20,7 +20,7 @@ public class Menu extends BaseEntity {
     Long price;
     String expression;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "store_id")
     Store store;
 

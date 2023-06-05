@@ -1,33 +1,24 @@
 package DeliveryFriends.Backend.Service;
 
-import DeliveryFriends.Backend.Config.Security.TokenProvider;
 import DeliveryFriends.Backend.Controller.BaseException;
 import DeliveryFriends.Backend.Domain.*;
 import DeliveryFriends.Backend.Domain.Dto.FilenameDto;
 import DeliveryFriends.Backend.Domain.Dto.Store.ReadStoresDto;
-import DeliveryFriends.Backend.Domain.Dto.Store.SimpleStoreDto;
-import DeliveryFriends.Backend.Domain.Dto.Store.StoreCondDto;
 import DeliveryFriends.Backend.Domain.Dto.User.*;
-import DeliveryFriends.Backend.Domain.Dto.TokensDto;
+import DeliveryFriends.Backend.Domain.Dto.UserIdTargetIdDto;
 import DeliveryFriends.Backend.Repository.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
-import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.StringUtils;
 
-import javax.persistence.JoinColumn;
-import javax.persistence.ManyToOne;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.regex.Pattern;
 
 import static DeliveryFriends.Backend.Controller.BaseResponseStatus.*;
-import static DeliveryFriends.Backend.Domain.QUserOrder.userOrder;
 
 @Service
 @Transactional
@@ -39,12 +30,69 @@ public class UserService {
     private final MenuRepository menuRepository;
     private final MenuOptionRepository menuOptionRepository;
     private final MenuOptionGroupRepository menuOptionGroupRepository;
+    private final MenuMediaRepository menuMediaRepository;
     private final ChoiceOptionRepository choiceOptionRepository;
     private final ChoiceMenuRepository choiceMenuRepository;
     private final CartRepository cartRepository;
     private final LikeStoreRepository likeStoreRepository;
     private final StoreMediaRepository storeMediaRepository;
     private final UserOrderRepository userOrderRepository;
+    private final LikeUserRepository likeUserRepository;
+    private final UserReviewRepository userReviewRepository;
+    private final TeamOrderRepository teamOrderRepository;
+    private final ReviewRepository reviewRepository;
+
+    public void updateProfile(Long userId, String imgSrc) {
+        Optional<User> findUser = userRepository.findById(userId);
+        if (!findUser.isPresent()) {
+            throw new BaseException(CANNOT_FOUND_USER);
+        }
+        User user = findUser.get();
+        user.setImgSrc(imgSrc);
+    }
+
+    public String updateNickname(Long userId, String nickname) {
+        Optional<User> findUser = userRepository.findById(userId);
+        if (!findUser.isPresent()) {
+            throw new BaseException(CANNOT_FOUND_USER);
+        }
+        if (isValidNickname(nickname).equals("가능한 닉네임입니다.")) {
+            User user = findUser.get();
+            user.setNickname(nickname);
+        }
+        return "성공";
+    }
+
+    public String isValidNickname(String nickname) {
+        // 닉네임 입력 여부
+        if (nickname.length() == 0) {
+            throw new BaseException(NICKNAME_ENTER);
+        }
+        // 닉네임 길이 < 3
+        if ((nickname.length() < 3)) {
+            throw new BaseException(NICKNAME_LENGTH_MIN_INSUFFICIENT);
+        }
+
+        // 닉네임 길이 > 10
+        if (nickname.length() > 10) {
+            throw new BaseException(NICKNAME_LENGTH_MAX_INSUFFICIENT);
+        }
+
+        // 닉네임 한글영어 2~10
+        Pattern pattern = Pattern.compile("^[a-zA-Z0-9ㄱ-ㅎ가-힣]{2,10}$");
+        if (!pattern.matcher(nickname).find()) {
+            throw new BaseException(NICKNAME_NOT_ALLOW_CHARACTER);
+        }
+
+        // 닉네임 중복
+        if (isDuplicatedNickname(nickname)) {
+            throw new BaseException(NICKNAME_ALREADY_USE);
+        }
+        return "가능한 닉네임입니다.";
+    }
+    public Boolean isDuplicatedNickname(String nickname) {
+        return userRepository.findByNicknameIgnoreCase(nickname).isPresent();
+    }
 
     public void goCart(CartReq req, Long userId) {
         Optional<User> findUser = userRepository.findById(userId);
@@ -106,6 +154,15 @@ public class UserService {
             CartRes cartRes = new CartRes();
             cartRes.setCartId(cart.getId());
             cartRes.setStoreId(cart.getStore().getId());
+            cartRes.setStoreName(cart.getStore().getName());
+            cartRes.setDeliveryTip(cart.getStore().getDeliveryTip());
+
+            List<String> storeFilenames = new ArrayList<>();
+            List<FilenameDto> medium = storeMediaRepository.getStoreMedium(cart.getStore().getId());
+            for (FilenameDto filenameDto : medium) {
+                storeFilenames.add(filenameDto.getFilename());
+            }
+            cartRes.setMedium(storeFilenames);
 
             List<CartMenuRes> cartMenus = new ArrayList<>();
             //가게의 메뉴
@@ -115,6 +172,13 @@ public class UserService {
                 cartMenuRes.setName(choiceMenu.getMenu().getName());
                 cartMenuRes.setPrice(choiceMenu.getMenu().getPrice());
                 cartMenuRes.setCount(choiceMenu.getCount());
+
+                List<String> menuFilenames = new ArrayList<>();
+                List<MenuMedia> menus = menuMediaRepository.findByMenu(choiceMenu.getMenu());
+                for (MenuMedia menuMedia : menus) {
+                    menuFilenames.add(menuMedia.getFileName());
+                }
+                cartMenuRes.setMedium(menuFilenames);
 
                 //가게의 옵션
                 List<ChoiceOption> choiceOptions = choiceOptionRepository.findByChoiceMenu(choiceMenu);
@@ -208,8 +272,7 @@ public class UserService {
         if (!findLikeStore.isPresent()) {
             throw new BaseException(ALREADY_DISLIKE);
         } else {
-            LikeStore likeStore = new LikeStore(store, user);
-            likeStoreRepository.delete(likeStore);
+            likeStoreRepository.delete(findLikeStore.get());
             store.setLikeCount(store.getLikeCount() - 1);
         }
     }
@@ -239,7 +302,7 @@ public class UserService {
                         store.getPackageAvailable(),
                         store.getPackageWaitTime(),
                         store.getDeliveryTip(),
-                        (float) (store.getReviewScore() / store.getReviewCount()),
+                        (float) (store.getReviewScore()) / (float) (store.getReviewCount()),
                         store.getReviewCount(),
                         store.getMinPrice(),
                         medium
@@ -264,18 +327,60 @@ public class UserService {
         return result;
     }
 
-    public List<UserOrdersDto> getUserOrderList(Long userId) {
+    public List<UserOrdersDto> getUserOrderList(Pageable pageable, Long userId) {
         Optional<User> findUser = userRepository.findById(userId);
-        List<UserOrder> userOrders = userOrderRepository.findByUser(findUser.get());
+        if (!findUser.isPresent()) {
+            throw new BaseException(CANNOT_FOUND_USER);
+        }
+        User user = findUser.get();
+        List<UserOrder> userOrders = userOrderRepository.findByUser(user);
+
         List<UserOrdersDto> result = new ArrayList<>();
         for (UserOrder userOrder : userOrders) {
-            String orderResult = userOrder.getResult();
-            if (orderResult.equals("결제 완료")) {
-                if (userOrder.getTeam().getGroupEndTime().isBefore(LocalDateTime.now())) {
-                    orderResult = "팀 주문 취소";
-                }
+            Long storeId = userOrder.getStore().getId();
+            String storeName = userOrder.getStore().getName();
+            List<String> medium = new ArrayList<>();
+            List<StoreMedia> storeMedium = storeMediaRepository.findByStore(userOrder.getStore());
+            for (StoreMedia storeMedia : storeMedium) {
+                String fileName = storeMedia.getFileName();
+                medium.add(fileName);
             }
-            UserOrdersDto userOrdersDto = new UserOrdersDto(orderResult, userOrder.getStore().getName(), userOrder.getOrderInfo());
+            Team team = userOrder.getTeam();
+            Long leaderId = team.getLeaderId();
+            Long orderId = userOrder.getId();
+            String orderInfo = userOrder.getOrderInfo();
+            LocalDateTime createdDate = userOrder.getCreatedAt();
+
+            String menuInfo = userOrder.getMenuInfo();
+            Long price = userOrder.getPrice();
+            Long deliveryTip = userOrder.getDeliveryTip();
+            Boolean isUserReviewWrite = false;
+            Boolean isStoreLikeReviewWrite = false;
+
+
+            Optional<User> findLeader = userRepository.findById(userId);
+            if (!findLeader.isPresent()) {
+                throw new BaseException(CANNOT_FOUND_USER);
+            }
+            User leader = findUser.get();
+            Optional<UserReview> findReivew = userReviewRepository.findByUserAndWriter(leader, user);
+            isUserReviewWrite = findReivew.isPresent();
+
+            isStoreLikeReviewWrite = reviewRepository.findByOrder(userOrder).isPresent();
+
+            UserOrdersDto userOrdersDto = new UserOrdersDto(storeId,
+                    storeName,
+                    medium,
+                    leaderId,
+                    orderId,
+                    orderInfo,
+                    createdDate,
+                    menuInfo,
+                    price,
+                    deliveryTip,
+                    isStoreLikeReviewWrite,
+                    isUserReviewWrite
+            );
             result.add(userOrdersDto);
         }
         return result;
@@ -288,12 +393,189 @@ public class UserService {
         }
         UserOrder userOrder = findUserOrder.get();
 
-        String orderResult = userOrder.getResult();
-        if (orderResult.equals("결제 완료")) {
+        String orderInfo = userOrder.getOrderInfo();
+        if (orderInfo.equals("결제 완료")) {
             if (userOrder.getTeam().getGroupEndTime().isBefore(LocalDateTime.now())) {
-                orderResult = "팀 주문 취소";
+                orderInfo = "팀 주문 취소";
             }
         }
-        return new UserOrderDto(orderResult, userOrder.getPaymentKey(), userOrder.getStore().getName(), userOrder.getOrderInfo());
+        return new UserOrderDto(orderInfo, userOrder.getPaymentKey(), userOrder.getStore().getName(), userOrder.getOrderInfo());
+    }
+
+    public void likeUser(UserIdTargetIdDto req) {
+        Long userId = req.getUserId();
+        Long targetId = req.getTargetId();
+        System.out.println("@@@" + userId);
+        System.out.println("@@@" + targetId);
+        Optional<User> findUser = userRepository.findById(userId);
+        if (!findUser.isPresent()) {
+            throw new BaseException(CANNOT_FOUND_USER);
+        }
+        User user = findUser.get();
+        Optional<User> findTarget = userRepository.findById(targetId);
+        if (!findTarget.isPresent()) {
+            throw new BaseException(CANNOT_FOUND_USER);
+        }
+        User target = findTarget.get();
+
+        Optional<LikeUser> findLikeUser = likeUserRepository.findByReceiverAndSender(target, user);
+        if (findLikeUser.isPresent()) {
+            throw new BaseException(ALREADY_LIKE);
+        }
+
+        LikeUser likeUser = new LikeUser(target, user);
+        likeUserRepository.save(likeUser);
+    }
+
+    public void dislikeUser(UserIdTargetIdDto req) {
+        Long userId = req.getUserId();
+        Long targetId = req.getTargetId();
+        System.out.println("@@@" + userId);
+        System.out.println("@@@" + targetId);
+        Optional<User> findUser = userRepository.findById(userId);
+        if (!findUser.isPresent()) {
+            throw new BaseException(CANNOT_FOUND_USER);
+        }
+        User user = findUser.get();
+        Optional<User> findTarget = userRepository.findById(targetId);
+        if (!findTarget.isPresent()) {
+            throw new BaseException(CANNOT_FOUND_USER);
+        }
+        User target = findTarget.get();
+
+        Optional<LikeUser> findLikeUser = likeUserRepository.findByReceiverAndSender(target, user);
+        if (!findLikeUser.isPresent()) {
+            throw new BaseException(ALREADY_DISLIKE);
+        }
+
+        likeUserRepository.delete(findLikeUser.get());
+    }
+
+    public List<LikeUserRes> getLikeUserList(Long userId, Pageable pageable) {
+        Optional<User> findUser = userRepository.findById(userId);
+        if (!findUser.isPresent()) {
+            throw new BaseException(CANNOT_FOUND_USER);
+        }
+        User user = findUser.get();
+        List<LikeUserRes> result = new ArrayList<>();
+        System.out.println(user.getNickname());
+        System.out.println("@@@0");
+        List<LikeUser> likeUserList = likeUserRepository.findBySender(user);
+        System.out.println("@@@1");
+        for (LikeUser likeUser : likeUserList) {
+            System.out.println("@@@2");
+            LikeUserRes likeUserRes = new LikeUserRes();
+            User receiver = likeUser.getReceiver();
+            likeUserRes.setUserId(receiver.getId());
+            likeUserRes.setNickname(receiver.getNickname());
+            likeUserRes.setName(receiver.getName());
+            likeUserRes.setImgSrc(receiver.getImgSrc());
+            System.out.println("@@@3");
+
+            List<UserReview> userReviews = userReviewRepository.findByUser(user);
+            Long sum = 0L;
+            Long count = 0L;
+            for (UserReview userReview : userReviews) {
+                sum += userReview.getScore();
+                count++;
+            }
+
+            if (count < 1) {
+                likeUserRes.setScore(0F);
+            } else {
+                likeUserRes.setScore((float) sum / (float) count);
+            }
+            System.out.println("@@@4");
+            likeUserRes.setReviewCount(Long.valueOf(userReviews.size()));
+
+
+            System.out.println("@@@5");
+            result.add(likeUserRes);
+        }
+        return result;
+    }
+
+    public void addUserReview(Long userId, UserReviewReq userReviewReq) {
+        Optional<User> findUser = userRepository.findById(userId);
+        if (!findUser.isPresent()) {
+            throw new BaseException(CANNOT_FOUND_USER);
+        }
+        User user = findUser.get();
+        Optional<User> findTarget = userRepository.findById(userReviewReq.getUserId());
+        if (!findUser.isPresent()) {
+            throw new BaseException(CANNOT_FOUND_USER);
+        }
+        User target = findTarget.get();
+
+        Optional<UserReview> findReivew = userReviewRepository.findByUserAndWriter(target, user);
+        if (findReivew.isPresent()) {
+            throw new BaseException(ALREADY_WRITED_REVIEW);
+        }
+        UserReview userReview = new UserReview(target, user, userReviewReq.getContent(), userReviewReq.getScore());
+        userReviewRepository.save(userReview);
+    }
+
+    public List<UserReviewRes> getUserReview(Long userId) {
+        Optional<User> findUser = userRepository.findById(userId);
+        if (!findUser.isPresent()) {
+            throw new BaseException(CANNOT_FOUND_USER);
+        }
+        User user = findUser.get();
+
+        List<UserReviewRes> result = new ArrayList<>();
+        List<UserReview> findReivew = userReviewRepository.findByUser(user);
+        for (UserReview userReview : findReivew) {
+            UserReviewRes userReviewRes = new UserReviewRes();
+            userReviewRes.setUserId(userReview.getWriter().getId());
+            userReviewRes.setNickname(userReview.getWriter().getNickname());
+            userReviewRes.setImgSrc(userReview.getWriter().getImgSrc());
+            userReviewRes.setContent(userReview.getContext());
+            userReviewRes.setCreatedDate(userReview.getCreatedAt());
+            result.add(userReviewRes);
+        }
+        return result;
+    }
+
+    public UserInfoDto getUserInfo(Long myId, Long userId) {
+        Optional<User> findUser = userRepository.findById(userId);
+        if (!findUser.isPresent()) {
+            throw new BaseException(CANNOT_FOUND_USER);
+        }
+        User user = findUser.get();
+
+        UserInfoDto userInfoDto = new UserInfoDto();
+        userInfoDto.setNickname(user.getNickname());
+        userInfoDto.setImgSrc(user.getImgSrc());
+
+        Long sum = 0L;
+        Long count = 0L;
+        List<UserReview> userReviews = userReviewRepository.findByUser(user);
+        for (UserReview userReview : userReviews) {
+            sum += userReview.getScore();
+            count++;
+        }
+
+        if (count < 1) {
+            userInfoDto.setScore(0F);
+        } else {
+            userInfoDto.setScore((float) sum / (float) count);
+        }
+        userInfoDto.setReviewCount(Long.valueOf(userReviews.size()));
+
+        Boolean isLike = false;
+        if (myId != null) {
+            Optional<User> findMe = userRepository.findById(myId);
+            if (!findUser.isPresent()) {
+                throw new BaseException(CANNOT_FOUND_USER);
+            }
+            User me = findMe.get();
+            Optional<LikeUser> likeUser = likeUserRepository.findByReceiverAndSender(user, me);
+            isLike = likeUser.isPresent();
+        }
+        Long likeCount = likeUserRepository.countByReceiver(user);
+        userInfoDto.setLikeCount(likeCount);
+        userInfoDto.setIsLike(isLike);
+
+        return userInfoDto;
     }
 }

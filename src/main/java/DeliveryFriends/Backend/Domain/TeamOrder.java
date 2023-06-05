@@ -21,11 +21,11 @@ public class TeamOrder extends BaseEntity {
     String orderStatus;
 
     @JoinColumn(name = "team_id")
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     Team team;
 
     @JoinColumn(name = "cart_id")
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     Cart cart;
 
     @OneToOne

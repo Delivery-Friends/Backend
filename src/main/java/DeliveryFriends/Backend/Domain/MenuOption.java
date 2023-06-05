@@ -22,7 +22,7 @@ public class MenuOption extends BaseEntity {
     Long defaultValue;
 
     @JoinColumn(name = "menu_option_group_id")
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     MenuOptionGroup menuOptionGroup;
 
     public MenuOption(CreateMenuOptionDto createMenuOptionDto, MenuOptionGroup menuOptionGroup) {

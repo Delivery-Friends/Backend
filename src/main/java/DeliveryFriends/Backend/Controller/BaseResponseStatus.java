@@ -8,6 +8,7 @@ public enum BaseResponseStatus {
     Success(200, "요청에 성공하였습니다."),
     Bad_Request(400, "요청이 잘못되었습니다."),
     Unauthorized(401, "인증되지 않은 사용자입니다."),
+    Forbidden(403, "잘못된 접근입니다."),
     Not_Found(404, "찾을 수 없습니다."),
 
 
@@ -32,7 +33,19 @@ public enum BaseResponseStatus {
     ALREADY_WRITED_REVIEW(30000, "리뷰가 이미 작성된 주문입니다."),
     NOT_MATCH_STORE(30001, "카트가 가게와 매칭되지 않습니다."),
     ALREADY_LIKE(30002, "이미 좋아하는 상태입니다."),
-    ALREADY_DISLIKE(30003, "이미 좋아하는 상태가 아닙니다.");
+    ALREADY_DISLIKE(30003, "이미 좋아하는 상태가 아닙니다."),
+    ALREADY_JOIN_TEAM(30004, "이미 가입한 팀이 있습니다."),
+    ALREADY_PROGRESS_TEAM(30005, "이미 진행 중인 팀이 있습니다."),
+
+    NOT_LEADER(40000, "리더가 아닙니다."),
+    CART_NOT_SETTING(40001, "카트가 정해지지 않았습니다."),
+    ORDER_PROGRESS_ERROR(40002, "주문 진행에 오류가 발생했습니다."),
+
+    NICKNAME_ENTER(50000, "닉네임을 입력해주세요."),
+    NICKNAME_LENGTH_MIN_INSUFFICIENT(50001, "닉네임 길이는 2자 이상입니다."),
+    NICKNAME_LENGTH_MAX_INSUFFICIENT(50002, "닉네임 길이는 9자 이하입니다."),
+    NICKNAME_NOT_ALLOW_CHARACTER(50002, "허용되지 않은 문자가 있습니다."),
+    NICKNAME_ALREADY_USE(50002, "중복된 닉네임이 존재합니다.");
 
 
     private final int statusCode;

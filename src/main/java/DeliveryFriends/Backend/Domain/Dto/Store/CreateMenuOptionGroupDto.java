@@ -11,5 +11,4 @@ public class CreateMenuOptionGroupDto {
     Long menuId;
     String name;
     Long multiSelect;
-    List<CreateMenuOptionDto> menuOptions;
 }

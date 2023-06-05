@@ -20,18 +20,16 @@ public class SecurityConfig {
     private final JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint;
     private final JwtAccessDeniedHandler jwtAccessDeniedHandler;
 
-//    @Bean
-//    public WebSecurityCustomizer webSecurityCustomizer() {
-//        return (web) -> web.ignoring()
-//                // Spring Security should completely ignore URLs starting with /resources/
-//                .requestMatchers("/resources/**");
-//    }
-
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
 
         http
+                .httpBasic().disable()
+                .cors()
+                .and()
+
                 .csrf().disable()
+                .formLogin().disable()
 
                 .exceptionHandling()
                 .authenticationEntryPoint(jwtAuthenticationEntryPoint)
@@ -47,7 +45,6 @@ public class SecurityConfig {
                 .antMatchers("/team/**").authenticated()
                 .anyRequest().permitAll()
 
-                // JwtFilter를 addFilterBefore로 등록했던 jwtSecurityConfig 클래스 적용
                 .and()
                 .apply(new JwtSecurityConfig(tokenProvider));
 

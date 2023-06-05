@@ -16,30 +16,34 @@ public class UserOrder extends BaseEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     Long id;
 
-    String result;
-
     @JoinColumn(name = "user_id")
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     User user;
 
     String paymentKey;
 
     @JoinColumn(name = "store_id")
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     Store store;
 
     String orderInfo;
 
     @JoinColumn(name = "team_id")
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     Team team;
 
-    public UserOrder(String result, User user, String paymentKey, Store store, String orderInfo, Team team) {
-        this.result = result;
+    String menuInfo;
+    Long price;
+    Long deliveryTip;
+
+    public UserOrder(User user, String paymentKey, Store store, String orderInfo, Team team, String menuInfo, Long price, Long deliveryTip) {
         this.user = user;
         this.paymentKey = paymentKey;
         this.store = store;
         this.orderInfo = orderInfo;
         this.team = team;
+        this.menuInfo = menuInfo;
+        this.price = price;
+        this.deliveryTip = deliveryTip;
     }
 }
