@@ -1,6 +1,7 @@
 package DeliveryFriends.Backend.Domain.Dto.Post;
 
 import DeliveryFriends.Backend.Domain.Store;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -37,7 +38,11 @@ public class TeamRes {
     String latitude;
     String longitude;
 
-    public TeamRes(LocalDateTime groupEndTime, Long teamId, Long storeId, String storeName, Long leaderId, String leaderName, String leaderImgSrc, String category, List<String> storeImgUrl, Float storeScore, Long reviewCount, Long deliveryTime, Long deliveryTip, Long minPrice, Long maxMember, Long nowMember, String basicAddress, String detailedAddress, String latitude, String longitude) {
+    Boolean isJoin;
+
+    @Builder
+
+    public TeamRes(LocalDateTime groupEndTime, Long teamId, Long storeId, String storeName, Long leaderId, String leaderName, String leaderImgSrc, String category, List<String> storeImgUrl, Float storeScore, Long reviewCount, Long deliveryTime, Long deliveryTip, Long minPrice, Long maxMember, Long nowMember, String basicAddress, String detailedAddress, String latitude, String longitude, Boolean isJoin) {
         this.groupEndTime = groupEndTime;
         this.teamId = teamId;
         this.storeId = storeId;
@@ -58,5 +63,6 @@ public class TeamRes {
         this.detailedAddress = detailedAddress;
         this.latitude = latitude;
         this.longitude = longitude;
+        this.isJoin = isJoin;
     }
 }

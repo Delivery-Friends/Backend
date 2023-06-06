@@ -37,6 +37,34 @@ public class StoreService {
     private final MenuMediaRepository menuMediaRepository;
     private final LikeStoreRepository likeStoreRepository;
 
+
+    public String addAll(CreateAllDto createAllDto) {
+        CreateStoreDto createStoreDto = createAllDto.getStore();
+        Store store = new Store(createStoreDto, 0L, 0L, 0L, 0L);
+        Store saveStore = storeRepository.save(store);
+
+        List<CreateMenusDto> menus = createAllDto.getMenu();
+        for (CreateMenusDto menusDto : menus) {
+            Menu menu = new Menu(
+                    menusDto.getName(),
+                    menusDto.getPrice(),
+                    menusDto.getExpression(),
+                    saveStore);
+            Menu saveMenu = menuRepository.save(menu);
+            List<CreateMenuOptionGroupsDto> menuOptionGroups = menusDto.getMenuOptionGroups();
+            for (CreateMenuOptionGroupsDto menuOptionGroup : menuOptionGroups) {
+                MenuOptionGroup menuOptionGroup1 = new MenuOptionGroup(menuOptionGroup.getName(), menuOptionGroup.getMultiSelect(), saveMenu);
+                MenuOptionGroup saveMenuOptionGroup = menuOptionGroupRepository.save(menuOptionGroup1);
+                List<CreateMenuOptionsDto> menuOptions = menuOptionGroup.getMenuOption();
+                for (CreateMenuOptionsDto menuOption : menuOptions) {
+                    MenuOption menuOption1 = new MenuOption(menuOption.getName(), menuOption.getPrice(), menuOption.getMaxCount(), menuOption.getDefaultValue(), saveMenuOptionGroup);
+                    MenuOption saveMenuOption = menuOptionRepository.save(menuOption1);
+                }
+            }
+        }
+        return "성공";
+    }
+
     public Long addStore(CreateStoreDto createStoreDto) {
         Store store = new Store(createStoreDto, 0L, 0L, 0L, 0L);
         return storeRepository.save(store).getId();
@@ -63,7 +91,11 @@ public class StoreService {
             Optional<LikeStore> likeStore = likeStoreRepository.findByStoreAndUser(store, me);
             isLike = likeStore.isPresent();
         }
-        return new StoreInfoDto(store, (float) (store.getReviewScore()) / (float) (store.getReviewCount()), arr, isLike);
+        if (store.getReviewCount() > 0) {
+            return new StoreInfoDto(store, (float) (store.getReviewScore()) / (float) (store.getReviewCount()), arr, isLike);
+        } else {
+            return new StoreInfoDto(store, 0F, arr, isLike);
+        }
     }
 
     public List<ReadStoresDto> getStoreList(Pageable pageable, StoreCondDto cond) {
@@ -228,6 +260,9 @@ public class StoreService {
             throw new BaseException(ALREADY_WRITED_REVIEW);
         }
         UserOrder userOrder = findOrder.get();
+        if (!userOrder.getOrderInfo().equals("팀 결제 완료")) {
+            throw new BaseException(ORDER_NOT_PROGRESS);
+        }
         Store store = userOrder.getStore();
         store.setReviewScore(store.getReviewScore() + req.getScore());
         store.setReviewCount(store.getReviewCount() + 1);

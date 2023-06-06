@@ -19,6 +19,8 @@ public class Noti extends BaseEntity {
     User user;
 
     String title;
+
+    @Column(columnDefinition = "TEXT")
     String content;
 
     public Noti(User user, String title, String content) {

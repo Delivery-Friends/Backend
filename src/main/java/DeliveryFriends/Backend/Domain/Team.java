@@ -25,7 +25,10 @@ public class Team extends BaseEntity {
     Store store;
 
     String leaderName;
+
+    @Column(columnDefinition = "TEXT")
     String leaderImgSrc;
+
     Long leaderId;
 
     Long maxMember;

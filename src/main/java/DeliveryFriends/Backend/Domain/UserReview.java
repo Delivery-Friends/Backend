@@ -22,6 +22,7 @@ public class UserReview extends BaseEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     User writer;
 
+    @Column(columnDefinition = "TEXT")
     String context;
 
     Long score;

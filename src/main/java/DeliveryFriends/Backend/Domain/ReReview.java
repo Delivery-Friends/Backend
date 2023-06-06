@@ -15,6 +15,7 @@ public class ReReview extends BaseEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     Long id;
 
+    @Column(columnDefinition = "TEXT")
     String content;
 
     @ManyToOne(fetch = FetchType.LAZY)

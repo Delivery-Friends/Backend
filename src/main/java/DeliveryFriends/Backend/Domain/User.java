@@ -19,7 +19,10 @@ public class User extends BaseEntity {
     String kakaoId;
     Long point;
     String refreshToken;
+
+    @Column(columnDefinition = "TEXT")
     String imgSrc;
+
     String password;
 
     String role;

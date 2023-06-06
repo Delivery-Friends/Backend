@@ -5,6 +5,8 @@ import DeliveryFriends.Backend.Domain.Dto.Store.MenuInfoAndPriceDto;
 import DeliveryFriends.Backend.Service.PostService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.*;
@@ -38,7 +40,9 @@ public class PostController {
     }
 
     @GetMapping("/teamlist")
-    public BaseResponse<List<TeamListRes>> getTeamList(Pageable pageable) {
+    public BaseResponse<List<TeamListRes>> getTeamList(
+            @PageableDefault(size = 100, sort = "reviewCount", direction = Sort.Direction.DESC) Pageable pageable
+    ) {
         return new BaseResponse<>(postService.getTeamList(pageable));
     }
 
@@ -48,8 +52,9 @@ public class PostController {
     }
 
     @GetMapping("/teamlist/{teamId}")
-    public BaseResponse<TeamRes> getTeamList(@PathVariable Long teamId) {
-        return new BaseResponse<>(postService.getTeam(teamId));
+    public BaseResponse<TeamRes> getTeamList(Principal principal, @PathVariable Long teamId) {
+        Long userId = Long.parseLong(principal.getName());
+        return new BaseResponse<>(postService.getTeam(userId, teamId));
     }
 
     @PostMapping("/team/cart")
@@ -60,7 +65,7 @@ public class PostController {
     }
 
     @GetMapping("/team/status")
-    public BaseResponse<List<TeamOrderStatusDto>> getTeamOrderStatus(Principal principal) {
+    public BaseResponse<TeamStatusDto> getTeamOrderStatus(Principal principal) {
         Long userId = Long.parseLong(principal.getName());
         return new BaseResponse<>(postService.getTeamOrderStatus(userId));
     }

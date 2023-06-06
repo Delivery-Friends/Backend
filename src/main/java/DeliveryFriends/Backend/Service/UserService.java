@@ -374,8 +374,7 @@ public class UserService {
             Boolean isUserReviewWrite = false;
             Boolean isStoreLikeReviewWrite = false;
 
-
-            Optional<User> findLeader = userRepository.findById(userId);
+            Optional<User> findLeader = userRepository.findById(leaderId);
             if (!findLeader.isPresent()) {
                 throw new BaseException(CANNOT_FOUND_USER);
             }

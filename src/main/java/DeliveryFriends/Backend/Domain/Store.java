@@ -6,10 +6,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
+import javax.persistence.*;
 import java.time.LocalTime;
 
 @Entity
@@ -25,7 +22,10 @@ public class Store extends BaseEntity {
     String region2depthName;
     String region3depthName;
     String phoneNumber;
+
+    @Column(columnDefinition = "TEXT")
     String intro;
+
     LocalTime openTime;
     LocalTime closeTime;
     String registrationNumber;

@@ -16,6 +16,11 @@ import java.util.List;
 public class StoreController {
     private final StoreService storeService;
 
+    @PostMapping("/addAll")
+    public BaseResponse<String> add(@RequestBody CreateAllDto createAllDto) {
+        return new BaseResponse<>(storeService.addAll(createAllDto));
+    }
+
     @PostMapping("/addStore")
     public BaseResponse<Long> addStore(@RequestBody CreateStoreDto createStoreDto) {
         return new BaseResponse<>(storeService.addStore(createStoreDto));
@@ -48,7 +53,7 @@ public class StoreController {
 
     @GetMapping("/stores")
     public BaseResponse<List<ReadStoresDto>> getStoreList(
-            @PageableDefault(size = 10, sort = "reviewCount", direction = Sort.Direction.DESC) Pageable pageable,
+            @PageableDefault(size = 100, sort = "reviewCount", direction = Sort.Direction.DESC) Pageable pageable,
             StoreCondDto cond
             ) {
         return new BaseResponse<>(storeService.getStoreList(pageable, cond));

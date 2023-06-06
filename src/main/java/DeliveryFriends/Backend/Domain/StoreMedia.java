@@ -18,5 +18,6 @@ public class StoreMedia extends BaseEntity {
     @JoinColumn(name = "store_id")
     Store store;
 
+    @Column(columnDefinition = "TEXT")
     String fileName;
 }

@@ -32,4 +32,12 @@ public class MenuOption extends BaseEntity {
         this.defaultValue = createMenuOptionDto.getDefaultValue();
         this.menuOptionGroup = menuOptionGroup;
     }
+
+    public MenuOption(String name, Long price, Long maxCount, Long defaultValue, MenuOptionGroup menuOptionGroup) {
+        this.name = name;
+        this.price = price;
+        this.maxCount = maxCount;
+        this.defaultValue = defaultValue;
+        this.menuOptionGroup = menuOptionGroup;
+    }
 }

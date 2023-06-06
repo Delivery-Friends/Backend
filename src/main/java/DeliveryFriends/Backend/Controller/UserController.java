@@ -126,7 +126,7 @@ public class UserController {
     @GetMapping("/user/store/list")
     public BaseResponse<List<ReadStoresDto>> storeDislike(
             Principal principal,
-            @PageableDefault(size = 10, sort = "reviewCount", direction = Sort.Direction.DESC) Pageable pageable
+            @PageableDefault(size = 100, sort = "reviewCount", direction = Sort.Direction.DESC) Pageable pageable
     ) {
         Long userId = Long.parseLong(principal.getName());
         return new BaseResponse<>(userService.getLikeStoreList(pageable, userId));
@@ -135,7 +135,7 @@ public class UserController {
     @GetMapping("/user/order")
     public BaseResponse<List<UserOrdersDto>> getMyOrderList(
             Principal principal,
-            @PageableDefault(size = 10, sort = "createdDate", direction = Sort.Direction.DESC) Pageable pageable) {
+            @PageableDefault(size = 100, sort = "createdDate", direction = Sort.Direction.DESC) Pageable pageable) {
         Long userId = Long.parseLong(principal.getName());
         return new BaseResponse<>(userService.getUserOrderList(pageable, userId));
     }
@@ -162,7 +162,7 @@ public class UserController {
     @GetMapping("/user/likelist")
     public BaseResponse<List<LikeUserRes>> getLikeUserList(
             Principal principal,
-            @PageableDefault(size = 10, sort = "reviewCount", direction = Sort.Direction.DESC) Pageable pageable) {
+            @PageableDefault(size = 100, sort = "reviewCount", direction = Sort.Direction.DESC) Pageable pageable) {
         Long userId = Long.parseLong(principal.getName());
         return new BaseResponse<>(userService.getLikeUserList(userId, pageable));
     }

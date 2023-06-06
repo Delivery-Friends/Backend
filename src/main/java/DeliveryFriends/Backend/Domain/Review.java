@@ -16,6 +16,8 @@ public class Review extends BaseEntity {
     Long id;
 
     Long score;
+
+    @Column(columnDefinition = "TEXT")
     String content;
 
     @ManyToOne(fetch = FetchType.LAZY)

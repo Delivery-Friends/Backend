@@ -15,6 +15,7 @@ public class ReviewMedia extends BaseEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     Long id;
 
+    @Column(columnDefinition = "TEXT")
     String fileName;
 
     @ManyToOne(fetch = FetchType.LAZY)

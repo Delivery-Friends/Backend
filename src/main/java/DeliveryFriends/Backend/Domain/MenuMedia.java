@@ -19,5 +19,6 @@ public class MenuMedia extends BaseEntity {
     @JoinColumn(name = "menu_id")
     Menu menu;
 
+    @Column(columnDefinition = "TEXT")
     String fileName;
 }
