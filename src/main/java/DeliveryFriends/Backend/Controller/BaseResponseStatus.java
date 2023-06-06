@@ -40,6 +40,7 @@ public enum BaseResponseStatus {
     NOT_LEADER(40000, "리더가 아닙니다."),
     CART_NOT_SETTING(40001, "카트가 정해지지 않았습니다."),
     ORDER_PROGRESS_ERROR(40002, "주문 진행에 오류가 발생했습니다."),
+    PROGRESS_CART(40003, "주문 진행중인 카트입니다."),
 
     NICKNAME_ENTER(50000, "닉네임을 입력해주세요."),
     NICKNAME_LENGTH_MIN_INSUFFICIENT(50001, "닉네임 길이는 2자 이상입니다."),

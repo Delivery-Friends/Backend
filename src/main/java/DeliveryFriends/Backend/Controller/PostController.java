@@ -5,6 +5,8 @@ import DeliveryFriends.Backend.Domain.Dto.Store.MenuInfoAndPriceDto;
 import DeliveryFriends.Backend.Service.PostService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
+import org.springframework.util.StringUtils;
+import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.*;
 
 import java.security.Principal;
@@ -31,7 +33,7 @@ public class PostController {
     @PostMapping("/team/join")
     public BaseResponse<String> getMyTeam(Principal principal, @RequestBody JoinPostReq joinPostReq) {
         Long userId = Long.parseLong(principal.getName());
-        postService.joinPost(joinPostReq, userId);
+        postService.joinTeam(joinPostReq, userId);
         return new BaseResponse<>("성공");
     }
 
@@ -79,9 +81,9 @@ public class PostController {
 
     // 결제
     @PostMapping("/user/pay")
-    public BaseResponse<String> setCart(Principal principal, String key) {
+    public BaseResponse<String> setCart(Principal principal, @RequestBody OnlyKeyDto key) {
         Long userId = Long.parseLong(principal.getName());
-        postService.pay(userId, key);
+        postService.pay(userId, key.getKey());
         return new BaseResponse<>("성공");
     }
 

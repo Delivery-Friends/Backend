@@ -200,6 +200,8 @@ public class UserService {
     }
 
     public List<CartRes> deleteCart(Long userId, Long storeId) {
+
+
         Optional<User> findUser = userRepository.findById(userId);
         if (!findUser.isPresent()) {
             throw new BaseException(CANNOT_FOUND_USER);
@@ -214,7 +216,22 @@ public class UserService {
         if (!findStore.isPresent()) {
             throw new BaseException(CANNOT_FOUND_CART);
         }
-        List<ChoiceMenu> deleteChoiceMenus = choiceMenuRepository.findByCart(findDeleteCart.get());
+        Cart cart = findDeleteCart.get();
+        List<TeamOrder> findTeamOrder = teamOrderRepository.findByCart(cart);
+        for (TeamOrder teamOrder : findTeamOrder) {
+            if (teamOrder.getTeam().getId().equals(user.getTeam().getId()) &&
+                    (
+                            teamOrder.getOrderStatus().equals("wait") ||
+                            teamOrder.getOrderStatus().equals("pay") ||
+                            teamOrder.getOrderStatus().equals("order")
+                    )
+            ) {
+                throw new BaseException(PROGRESS_CART);
+            }
+            teamOrderRepository.delete(teamOrder);
+        }
+
+        List<ChoiceMenu> deleteChoiceMenus = choiceMenuRepository.findByCart(cart);
 
         //가게의 메뉴
         for (ChoiceMenu choiceMenu : deleteChoiceMenus) {
@@ -225,7 +242,7 @@ public class UserService {
             }
             choiceMenuRepository.delete(choiceMenu);
         }
-        cartRepository.delete(findDeleteCart.get());
+        cartRepository.delete(cart);
 
         List<CartRes> result = getCart(userId);
 
@@ -405,8 +422,6 @@ public class UserService {
     public void likeUser(UserIdTargetIdDto req) {
         Long userId = req.getUserId();
         Long targetId = req.getTargetId();
-        System.out.println("@@@" + userId);
-        System.out.println("@@@" + targetId);
         Optional<User> findUser = userRepository.findById(userId);
         if (!findUser.isPresent()) {
             throw new BaseException(CANNOT_FOUND_USER);
@@ -430,8 +445,6 @@ public class UserService {
     public void dislikeUser(UserIdTargetIdDto req) {
         Long userId = req.getUserId();
         Long targetId = req.getTargetId();
-        System.out.println("@@@" + userId);
-        System.out.println("@@@" + targetId);
         Optional<User> findUser = userRepository.findById(userId);
         if (!findUser.isPresent()) {
             throw new BaseException(CANNOT_FOUND_USER);
@@ -458,21 +471,16 @@ public class UserService {
         }
         User user = findUser.get();
         List<LikeUserRes> result = new ArrayList<>();
-        System.out.println(user.getNickname());
-        System.out.println("@@@0");
         List<LikeUser> likeUserList = likeUserRepository.findBySender(user);
-        System.out.println("@@@1");
         for (LikeUser likeUser : likeUserList) {
-            System.out.println("@@@2");
             LikeUserRes likeUserRes = new LikeUserRes();
             User receiver = likeUser.getReceiver();
             likeUserRes.setUserId(receiver.getId());
             likeUserRes.setNickname(receiver.getNickname());
             likeUserRes.setName(receiver.getName());
             likeUserRes.setImgSrc(receiver.getImgSrc());
-            System.out.println("@@@3");
 
-            List<UserReview> userReviews = userReviewRepository.findByUser(user);
+            List<UserReview> userReviews = userReviewRepository.findByUser(likeUser.getReceiver());
             Long sum = 0L;
             Long count = 0L;
             for (UserReview userReview : userReviews) {
@@ -485,11 +493,9 @@ public class UserService {
             } else {
                 likeUserRes.setScore((float) sum / (float) count);
             }
-            System.out.println("@@@4");
             likeUserRes.setReviewCount(Long.valueOf(userReviews.size()));
 
 
-            System.out.println("@@@5");
             result.add(likeUserRes);
         }
         return result;
@@ -531,6 +537,7 @@ public class UserService {
             userReviewRes.setImgSrc(userReview.getWriter().getImgSrc());
             userReviewRes.setContent(userReview.getContext());
             userReviewRes.setCreatedDate(userReview.getCreatedAt());
+            userReviewRes.setScore(userReview.getScore());
             result.add(userReviewRes);
         }
         return result;
@@ -575,6 +582,7 @@ public class UserService {
         Long likeCount = likeUserRepository.countByReceiver(user);
         userInfoDto.setLikeCount(likeCount);
         userInfoDto.setIsLike(isLike);
+        userInfoDto.setIsMe(userId.equals(myId));
 
         return userInfoDto;
     }

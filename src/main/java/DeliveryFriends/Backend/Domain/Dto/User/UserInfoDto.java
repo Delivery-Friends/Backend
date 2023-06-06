@@ -12,4 +12,5 @@ public class UserInfoDto {
     Long reviewCount;
     Long likeCount;
     Boolean isLike;
+    Boolean isMe;
 }

@@ -55,7 +55,6 @@ public class StoreService {
         }
         Boolean isLike = false;
         if (myId != null) {
-            System.out.println(myId);
             Optional<User> findMe = userRepository.findById(myId);
             if (!findMe.isPresent()) {
                 throw new BaseException(CANNOT_FOUND_USER);
@@ -63,7 +62,6 @@ public class StoreService {
             User me = findMe.get();
             Optional<LikeStore> likeStore = likeStoreRepository.findByStoreAndUser(store, me);
             isLike = likeStore.isPresent();
-            System.out.println(isLike);
         }
         return new StoreInfoDto(store, (float) (store.getReviewScore()) / (float) (store.getReviewCount()), arr, isLike);
     }

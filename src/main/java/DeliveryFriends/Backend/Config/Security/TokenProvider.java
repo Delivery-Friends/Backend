@@ -153,11 +153,9 @@ public class TokenProvider implements InitializingBean {
             Authentication authentication = getAuthentication(refreshToken);
             Optional<DeliveryFriends.Backend.Domain.User> findUser = userRepository.findById(Long.valueOf(authentication.getName()));
             if (!findUser.isPresent()) {
-                System.out.println("에러 1");
                 throw new BaseException(INVALID_JWT);
             }
             if (!findUser.get().getRefreshToken().equals(refreshToken)) {
-                System.out.println("에러 2");
                 throw new BaseException(INVALID_JWT);
             }
 
@@ -167,19 +165,15 @@ public class TokenProvider implements InitializingBean {
             return tokensDto;
         }
         catch (io.jsonwebtoken.security.SecurityException | MalformedJwtException e) {
-            System.out.println("에러 3");
             throw new BaseException(INVALID_JWT);
         }
         catch (ExpiredJwtException e) {
-            System.out.println("에러 4");
             throw new BaseException(EXPIRED_JWT);
         }
         catch (UnsupportedJwtException e) {
-            System.out.println("에러 5");
             throw new BaseException(INVALID_JWT);
         }
         catch (IllegalArgumentException e) {
-            System.out.println("에러 6");
             throw new BaseException(INVALID_JWT);
         }
     }

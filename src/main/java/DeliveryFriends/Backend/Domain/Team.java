@@ -38,7 +38,9 @@ public class Team extends BaseEntity {
 
     Long divideTip;
 
-    public Team(LocalDateTime groupEndTime, Store store, String leaderName, String leaderImgSrc, Long leaderId, Long maxMember, String basicAddress, String detailedAddress, String latitude, String longitude, Long divideTip) {
+    String orderStatus;
+
+    public Team(LocalDateTime groupEndTime, Store store, String leaderName, String leaderImgSrc, Long leaderId, Long maxMember, String basicAddress, String detailedAddress, String latitude, String longitude, Long divideTip, String orderStatus) {
         this.groupEndTime = groupEndTime;
         this.store = store;
         this.leaderName = leaderName;
@@ -50,5 +52,6 @@ public class Team extends BaseEntity {
         this.latitude = latitude;
         this.longitude = longitude;
         this.divideTip = divideTip;
+        this.orderStatus = orderStatus;
     }
 }

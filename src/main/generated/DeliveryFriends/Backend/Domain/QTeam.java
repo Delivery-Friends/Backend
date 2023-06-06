@@ -52,6 +52,8 @@ public class QTeam extends EntityPathBase<Team> {
 
     public final NumberPath<Long> maxMember = createNumber("maxMember", Long.class);
 
+    public final StringPath orderStatus = createString("orderStatus");
+
     public final QStore store;
 
     //inherited

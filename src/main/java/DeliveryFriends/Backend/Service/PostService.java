@@ -6,9 +6,6 @@ import DeliveryFriends.Backend.Domain.*;
 import DeliveryFriends.Backend.Domain.Dto.FilenameDto;
 import DeliveryFriends.Backend.Domain.Dto.Post.*;
 import DeliveryFriends.Backend.Domain.Dto.Store.MenuInfoAndPriceDto;
-import DeliveryFriends.Backend.Domain.Dto.User.CartMenuRes;
-import DeliveryFriends.Backend.Domain.Dto.User.CartOptionRes;
-import DeliveryFriends.Backend.Domain.Dto.User.CartRes;
 import DeliveryFriends.Backend.Repository.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
@@ -80,7 +77,8 @@ public class PostService {
                 createPostReq.getDetailedAddress(),
                 createPostReq.getLatitude(),
                 createPostReq.getLogitude(),
-                null
+                null,
+                "join"
         );
 
         TeamOrder teamOrder = new TeamOrder(true, "join", team, user, null);
@@ -91,7 +89,7 @@ public class PostService {
     }
 
     // 커뮤니티 가입
-    public void joinPost(JoinPostReq joinPostReq, Long userId) {
+    public void joinTeam(JoinPostReq joinPostReq, Long userId) {
         Optional<User> findUser = userRepository.findById(userId);
         if (!findUser.isPresent()) {
             throw new BaseException(CANNOT_FOUND_USER);
@@ -102,6 +100,9 @@ public class PostService {
         }
         Team team = findTeam.get();
         User user = findUser.get();
+        if(!team.getOrderStatus().equals("join")) {
+            throw new BaseException(ALREADY_PROGRESS_TEAM);
+        }
 
         if (user.getTeam() != null) {
             Team beforeTeam = user.getTeam();
@@ -380,16 +381,14 @@ public class PostService {
             }
             teamOrder.setOrderStatus("wait");
         }
+        team.setOrderStatus("wait");
 
-        System.out.println("@@@00");
         Long deliveryTip = team.getStore().getDeliveryTip();
-        System.out.println("@@@11" + deliveryTip);
         int count = members.size();
         Long divideTip = deliveryTip / count;
         while (divideTip * count > deliveryTip) {
             divideTip += 10L;
         }
-        System.out.println("@@@22" + divideTip);
         team.setDivideTip(divideTip);
         return divideTip;
     }
@@ -435,7 +434,7 @@ public class PostService {
             }
             menuInfo += " ";
         }
-        return new MenuInfoAndPriceDto(menuInfo, price, deliveryTip);
+        return new MenuInfoAndPriceDto(teamOrder.getId(), user.getName(), menuInfo, price, deliveryTip);
     }
 
     // 결제완료
@@ -496,7 +495,8 @@ public class PostService {
                 throw new BaseException(CANNOT_FOUND_TEAM_ORDER);
             }
             TeamOrder memberTeamOrder = findMemberTeamOrder.get();
-            memberTeamOrder.setOrderStatus("order");
+            // order 상태가 맞으나 현재 관리자 페이지가 없는 관계로 complete 처리
+            memberTeamOrder.setOrderStatus("complete");
             Optional<UserOrder> findUserOrder = userOrderRepository.findByUserAndTeam(member, team);
             if (!findUserOrder.isPresent()) {
                 throw new BaseException(CANNOT_FOUND_USER_ORDER);
@@ -504,6 +504,8 @@ public class PostService {
             UserOrder memberUserOrder = findUserOrder.get();
             memberUserOrder.setOrderInfo("팀 결제 완료");
         }
+        // order 상태가 맞으나 현재 관리자 페이지가 없는 관계로 complete 처리
+        team.setOrderStatus("complete");
     }
 
     public List<TeamOrderStatusDto> getTeamOrderStatus(Long userId){
